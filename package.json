@@ -1,0 +1,21 @@
+{
+  "name": "bizclaw",
+  "version": "1.0.0",
+  "description": "BizClaw — AI Business Agent for Indian MSMEs by Bizgenix AI Solutions",
+  "author": "Bizgenix AI Solutions Pvt. Ltd. <hello@bizgenix.in>",
+  "license": "MIT",
+  "homepage": "https://bizgenix.in",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bizgenix/bizclaw.git"
+  },
+  "scripts": {
+    "build": "./scripts/build.sh",
+    "update-upstream": "./scripts/update-upstream.sh",
+    "new-client": "./scripts/new-client.sh",
+    "brand-patch": "./scripts/brand-patch.sh"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
