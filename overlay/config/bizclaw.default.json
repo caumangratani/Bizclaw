@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openclaw.ai/config-schema.json",
+  "agent": {
+    "model": "anthropic/claude-sonnet-4-6"
+  },
+  "gateway": {
+    "port": 18789,
+    "bind": "localhost",
+    "controlUi": {
+      "basePath": "/"
+    }
+  }
+}

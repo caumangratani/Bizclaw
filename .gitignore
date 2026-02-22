@@ -1,0 +1,21 @@
+# Build output
+build/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# Client data (sensitive)
+clients/*/data/
+clients/*/logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
