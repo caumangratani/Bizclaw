@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  bizclaw:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: bizclaw-agent
+    restart: unless-stopped
+    ports:
+      - "18789:18789"
+      - "18790:18790"
+    volumes:
+      - bizclaw-data:/home/bizclaw/.bizclaw
+    environment:
+      - BIZCLAW_GATEWAY_TOKEN=${BIZCLAW_GATEWAY_TOKEN}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    networks:
+      - bizclaw-net
+
+volumes:
+  bizclaw-data:
+
+networks:
+  bizclaw-net:
+    driver: bridge
