@@ -1,0 +1,81 @@
+# ============================================================
+# BizClaw — Docker Compose (Single Client Deployment)
+# Bizgenix AI Solutions Pvt. Ltd.
+#
+# Usage:
+#   docker-compose up --build         # first time
+#   docker-compose up -d              # run in background
+#   docker-compose logs -f            # view logs
+#   docker-compose down               # stop
+#
+# Multi-tenant note:
+#   Current setup = single client.
+#   For multiple clients, duplicate this service with unique
+#   names, ports, and volume mounts per client.
+#   See: scripts/add-client.sh (future sprint)
+# ============================================================
+
+services:
+  bizclaw:
+    build:
+      context: ./openclaw
+      dockerfile: Dockerfile
+    container_name: bizclaw-gateway
+    restart: unless-stopped
+
+    environment:
+      # Gateway security
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:?Set OPENCLAW_GATEWAY_TOKEN in .env}
+
+      # LLM API Keys (at least one required)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+      # Optional: key rotation
+      ANTHROPIC_API_KEYS: ${ANTHROPIC_API_KEYS:-}
+      OPENAI_API_KEYS: ${OPENAI_API_KEYS:-}
+
+      # Optional: web search / tools
+      BRAVE_API_KEY: ${BRAVE_API_KEY:-}
+
+      # Config path inside container
+      OPENCLAW_CONFIG_PATH: /app/overlay/config/openclaw.json
+      OPENCLAW_STATE_DIR: /data/state
+
+    volumes:
+      # Mount BizClaw overlay (skills, plugin, soul, config)
+      - ./overlay:/app/overlay:ro
+
+      # Persistent state (WhatsApp auth, SQLite DB, vector memory)
+      - bizclaw-state:/data/state
+
+    ports:
+      # Gateway + Control UI
+      - "${BIZCLAW_PORT:-18789}:18789"
+
+    command: >
+      node openclaw.mjs gateway
+      --bind lan
+      --port 18789
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18789/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Resource limits (adjust per client needs)
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+
+volumes:
+  bizclaw-state:
+    driver: local

@@ -1,0 +1,150 @@
+{
+  // ============================================================
+  // BizClaw — OpenClaw Configuration
+  // Bizgenix AI Solutions Pvt. Ltd.
+  // ============================================================
+
+  "$schema": "https://openclaw.sh/schema/openclaw.json",
+
+  // -- UI Branding --
+  "ui": {
+    "seamColor": "#16A34A",
+    "assistant": {
+      "name": "BizClaw",
+      "avatar": "https://bizclaw.in/logo.png"
+    }
+  },
+
+  // -- Agent Configuration --
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-6",
+        "fallbacks": ["openai/gpt-4o"]
+      },
+      "heartbeat": {
+        "every": "8h",
+        "target": "whatsapp",
+        "prompt": "Send a brief morning business update. Include today's GST/compliance deadlines if any, pending collections summary, and one motivational tip. Keep it under 200 words. Use Hindi phrases naturally.",
+        "session": "heartbeat"
+      },
+      "timeoutSeconds": 300,
+      "maxConcurrent": 2,
+      "sandbox": { "mode": "off" }
+    },
+    "list": [
+      {
+        "id": "bizclaw-main",
+        "default": true,
+        "name": "BizClaw Assistant",
+        "identity": {
+          "name": "BizClaw",
+          "avatar": "https://bizclaw.in/logo.png"
+        },
+        "tools": {
+          "profile": "messaging",
+          "allow": ["web_fetch", "web_search"],
+          "deny": ["bash", "computer"],
+          "exec": { "security": "deny" }
+        }
+      }
+    ]
+  },
+
+  // -- Channel Bindings --
+  "bindings": [
+    {
+      "agentId": "bizclaw-main",
+      "match": {
+        "channel": "whatsapp",
+        "peer": { "kind": "direct" }
+      }
+    }
+  ],
+
+  // -- WhatsApp Channel --
+  "web": { "enabled": true },
+  "channels": {
+    "whatsapp": {
+      "dmPolicy": "allowlist",
+      "allowFrom": [],
+      "groupPolicy": "disabled",
+      "sendReadReceipts": true,
+      "textChunkLimit": 4000,
+      "chunkMode": "length",
+      "mediaMaxMb": 50,
+      "debounceMs": 500,
+      "ackReaction": {
+        "emoji": "⚡",
+        "direct": true,
+        "group": "mentions"
+      },
+      "actions": {
+        "reactions": true,
+        "sendMessage": true,
+        "polls": true
+      }
+    }
+  },
+
+  // -- Skills (Markdown instructions — no code) --
+  "skills": {
+    "allowBundled": ["weather", "wacli"],
+    "load": {
+      "extraDirs": ["./overlay/skills"],
+      "watch": true
+    },
+    "limits": {
+      "maxSkillsInPrompt": 20,
+      "maxSkillsPromptChars": 50000
+    }
+  },
+
+  // -- BizClaw Plugin --
+  "plugins": {
+    "enabled": true,
+    "load": {
+      "paths": ["./overlay/plugin"]
+    },
+    "entries": {
+      "bizclaw": {
+        "enabled": true
+      }
+    }
+  },
+
+  // -- Gateway --
+  "gateway": {
+    "port": 18789,
+    "bind": "lan",
+    "auth": {
+      "mode": "token"
+    },
+    "controlUi": {
+      "enabled": true
+    }
+  },
+
+  // -- Memory --
+  "memory": {
+    "backend": "builtin"
+  },
+
+  // -- Logging --
+  "logging": {
+    "level": "info",
+    "consoleLevel": "info",
+    "redactSensitive": true
+  },
+
+  // -- Cron (for scheduled tasks like weekly growth insights) --
+  "cron": {
+    "enabled": true,
+    "sessionRetention": "7d"
+  },
+
+  // -- Messages --
+  "messages": {
+    "threading": { "enabled": true }
+  }
+}
