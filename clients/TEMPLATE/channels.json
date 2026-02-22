@@ -1,0 +1,6 @@
+{
+  "whatsapp": { "enabled": true, "primary": true },
+  "telegram": { "enabled": false },
+  "email": { "enabled": true },
+  "slack": { "enabled": false }
+}

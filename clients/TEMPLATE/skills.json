@@ -1,0 +1,8 @@
+{
+  "enabledSkills": [
+    "heartbeat",
+    "daily-summary",
+    "follow-up-manager"
+  ],
+  "disabledSkills": []
+}
