@@ -1,0 +1,21 @@
+# BizClaw Railway Deployment Config
+# Each client is deployed as a separate Railway service
+#
+# Deploy: railway up
+# Or link to GitHub for auto-deploy on push
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "docker/Dockerfile"
+
+[deploy]
+startCommand = "node openclaw.mjs gateway --allow-unconfigured"
+healthcheckPath = "/"
+healthcheckTimeout = 10
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[deploy.volumes]
+"/data/.openclaw" = "bizclaw-state"
+"/data/workspace" = "bizclaw-workspace"
+"/data/backups" = "bizclaw-backups"

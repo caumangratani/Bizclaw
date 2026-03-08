@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bizgenix Admin Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07110b;
+      --panel: #102016;
+      --panel-2: #13271c;
+      --border: rgba(84, 120, 99, 0.34);
+      --text: #eef6ef;
+      --muted: #9eb2a4;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.14);
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(34, 197, 94, 0.08), transparent 28%),
+        linear-gradient(180deg, #051008, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .shell {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar, .stats, .cards {
+      display: grid;
+      gap: 16px;
+    }
+
+    .topbar {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .title small {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+    }
+
+    .muted { color: var(--muted); }
+
+    button, .button {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      color: #031108;
+      border: 0;
+    }
+
+    .stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 24px;
+    }
+
+    .stat, .card {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(16, 32, 22, 0.86);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .cards {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .badge.up { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+    .badge.down { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+    .badge.degraded { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .badge.other { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; }
+
+    dl {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 8px 12px;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    dt { color: var(--muted); }
+    dd { margin: 0; }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      padding: 24px;
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 24px, 1200px); }
+      .topbar { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="title">
+        <small>BizClaw Managed Fleet</small>
+        <h1>Operator Dashboard</h1>
+        <div class="muted">Track installs, health, notes, and billing for every Bizgenix client.</div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="button button-primary" href="#" id="refresh-button">Refresh</a>
+        <button id="logout-button">Log Out</button>
+      </div>
+    </div>
+
+    <section class="stats" id="stats"></section>
+    <section class="cards" id="cards"></section>
+  </div>
+
+  <script>
+    const cards = document.getElementById("cards");
+    const stats = document.getElementById("stats");
+
+    function renderStats(items) {
+      const total = items.length;
+      const up = items.filter((item) => item.health.status === "UP").length;
+      const degraded = items.filter((item) => item.health.status === "DEGRADED").length;
+      const missingBilling = items.filter((item) => !item.billing).length;
+
+      stats.innerHTML = [
+        ["Total clients", total],
+        ["Healthy", up],
+        ["Need attention", degraded],
+        ["Missing billing", missingBilling]
+      ].map(([label, value]) => `
+        <div class="stat">
+          <div class="stat-label">${label}</div>
+          <div class="stat-value">${value}</div>
+        </div>
+      `).join("");
+    }
+
+    function badgeClass(status) {
+      if (status === "UP") return "up";
+      if (status === "DOWN") return "down";
+      if (status === "DEGRADED") return "degraded";
+      return "other";
+    }
+
+    function renderClients(items) {
+      if (!items.length) {
+        cards.innerHTML = `<div class="empty">No client installs found yet. Create a client with \`./scripts/new-client.sh\` first.</div>`;
+        return;
+      }
+
+      cards.innerHTML = items.map((client) => `
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <h2>${client.clientName}</h2>
+              <div class="muted">${client.businessType} · ${client.clientId}</div>
+            </div>
+            <div class="badge ${badgeClass(client.health.status)}">${client.health.status}</div>
+          </div>
+
+          <dl>
+            <dt>Port</dt><dd>${client.port || "-"}</dd>
+            <dt>Phone</dt><dd>${client.phone || "-"}</dd>
+            <dt>Backup</dt><dd>${client.backupInfo.latestBackup ? new Date(client.backupInfo.latestBackup).toLocaleString() : "None"}</dd>
+            <dt>Billing</dt><dd>${client.billing ? `${client.billing.plan || "Custom"} · Rs.${client.billing.monthlyFeeInr || 0}/mo` : "Not set"}</dd>
+          </dl>
+
+          <div class="card-actions">
+            <a class="button" href="/client/${client.clientId}">Open client</a>
+            ${client.port ? `<a class="button" href="http://127.0.0.1:${client.port}" target="_blank" rel="noreferrer">Open gateway</a>` : ""}
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function load() {
+      const response = await fetch("/api/clients");
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await response.json();
+      renderStats(data.clients || []);
+      renderClients(data.clients || []);
+    }
+
+    document.getElementById("refresh-button").addEventListener("click", (event) => {
+      event.preventDefault();
+      load();
+    });
+
+    document.getElementById("logout-button").addEventListener("click", async () => {
+      await fetch("/api/logout", { method: "POST" });
+      window.location.href = "/login";
+    });
+
+    load();
+    setInterval(load, 30000);
+  </script>
+</body>
+</html>

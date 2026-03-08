@@ -79,6 +79,13 @@ if [ -d "$OVERLAY_DIR/i18n" ]; then
   cp -R "$OVERLAY_DIR/i18n" "$WORKSPACE_DIR/i18n"
 fi
 
+# Copy the runtime overlay into the packaged build so local and VPS runs
+# resolve the same plugin/skill assets without depending on repo cwd.
+if [ -d "$OVERLAY_DIR" ]; then
+  echo "Copying runtime overlay..."
+  cp -R "$OVERLAY_DIR" "$BUILD_DIR/overlay"
+fi
+
 # Step 6: Apply brand patch
 echo "Applying brand patch..."
 "$SCRIPT_DIR/brand-patch.sh" "$BUILD_DIR"

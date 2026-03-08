@@ -1,0 +1,9 @@
+{
+  "port": 18800,
+  "bind": "127.0.0.1",
+  "adminPasswordHash": "$2a$10$BIbgqitpzPD9u7fH8Oz9eeSodUAmHRAhJB2Bc2wGq7.tU0wgjb93O",
+  "sessionHours": 24,
+  "sessionCookieName": "bizclaw_admin_session",
+  "clientsDir": "../clients",
+  "backupsDir": "../backups"
+}

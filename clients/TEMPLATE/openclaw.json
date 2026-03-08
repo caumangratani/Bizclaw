@@ -1,0 +1,180 @@
+{
+  "env": {
+    "vars": {}
+  },
+  "logging": {
+    "level": "info",
+    "consoleLevel": "info"
+  },
+  "update": {
+    "checkOnStart": false
+  },
+  "ui": {
+    "seamColor": "#16A34A",
+    "assistant": {
+      "name": "BizClaw",
+      "avatar": "⚡"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openai/gpt-4o-mini",
+        "fallbacks": [
+          "openai/gpt-4o",
+          "google/gemini-2.5-flash"
+        ]
+      },
+      "models": {
+        "openai/gpt-4o-mini": {
+          "alias": "fast"
+        },
+        "openai/gpt-4o": {
+          "alias": "smart"
+        },
+        "google/gemini-2.5-flash": {
+          "alias": "gemini-flash"
+        },
+        "google/gemini-2.5-pro": {
+          "alias": "gemini-pro",
+          "params": {
+            "temperature": 0.7
+          }
+        }
+      },
+      "workspace": "${OPENCLAW_WORKSPACE_DIR}",
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "5m"
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    },
+    "list": [
+      {
+        "id": "bizclaw-TEMPLATE",
+        "default": true,
+        "name": "BizClaw Assistant",
+        "identity": {
+          "name": "BizClaw",
+          "avatar": "⚡"
+        }
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "agentId": "bizclaw-TEMPLATE",
+      "match": {
+        "channel": "whatsapp",
+        "peer": {
+          "kind": "direct",
+          "id": "*"
+        }
+      }
+    },
+    {
+      "agentId": "bizclaw-TEMPLATE",
+      "match": {
+        "channel": "telegram",
+        "peer": {
+          "kind": "direct",
+          "id": "*"
+        }
+      }
+    }
+  ],
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true
+  },
+  "cron": {
+    "enabled": true,
+    "sessionRetention": "7d"
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": { "enabled": true },
+        "command-logger": { "enabled": true },
+        "session-memory": { "enabled": true }
+      }
+    }
+  },
+  "web": {
+    "enabled": true
+  },
+  "channels": {
+    "whatsapp": {
+      "dmPolicy": "open",
+      "selfChatMode": true,
+      "allowFrom": ["*"],
+      "groupPolicy": "open",
+      "ackReaction": {
+        "emoji": "⚡",
+        "direct": true,
+        "group": "mentions"
+      },
+      "debounceMs": 0,
+      "mediaMaxMb": 50
+    },
+    "telegram": {
+      "enabled": false,
+      "dmPolicy": "open",
+      "botToken": "",
+      "allowFrom": ["*"],
+      "groupPolicy": "open",
+      "streaming": "partial"
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "controlUi": {
+      "enabled": true,
+      "root": "./overlay/control-ui"
+    },
+    "auth": {
+      "mode": "token",
+      "token": "${OPENCLAW_GATEWAY_TOKEN}"
+    }
+  },
+  "memory": {
+    "backend": "builtin",
+    "citations": "auto"
+  },
+  "skills": {
+    "load": {
+      "extraDirs": [
+        "./overlay/skills"
+      ],
+      "watch": false
+    }
+  },
+  "plugins": {
+    "enabled": true,
+    "allow": [
+      "bizclaw"
+    ],
+    "load": {
+      "paths": [
+        "./overlay/bizclaw"
+      ]
+    },
+    "entries": {
+      "whatsapp": { "enabled": true },
+      "bizclaw": { "enabled": true }
+    }
+  }
+}

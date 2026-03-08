@@ -47,19 +47,55 @@ BizClaw is an autonomous AI business agent that helps Indian MSMEs automate oper
    ./scripts/build.sh
    ```
 
-4. Run:
+4. Build BizClaw:
    ```bash
-   cd build && node openclaw.mjs onboard --install-daemon
+   ./scripts/build.sh
+   ```
+
+5. Create a client:
+   ```bash
+   ./scripts/new-client.sh demo-local "BizClaw Demo Local" "Trading & Distribution" "+919876543210"
+   ```
+
+6. Run that client locally:
+   ```bash
+   ./scripts/run-client-local.sh demo-local
+   ```
+
+7. Print the exact launch URLs:
+   ```bash
+   ./scripts/client-launch-url.sh demo-local
+   ```
+
+8. Start the full local demo stack:
+   ```bash
+   ./scripts/start-local-stack.sh demo-local
    ```
 
 ## Client Management
 
 ```bash
 # Create a new client
-./scripts/new-client.sh acme-textiles
+./scripts/new-client.sh acme-textiles "Acme Textiles" "Textiles" "+919876543210"
 
-# Edit client config
-$EDITOR clients/acme-textiles/config.json
+# Run locally
+./scripts/run-client-local.sh acme-textiles
+
+# Generate operator/client URLs
+./scripts/client-launch-url.sh acme-textiles
+```
+
+## Delivery Runbook
+
+The working install and handoff process is documented in:
+
+- `docs/launch/CLIENT-DELIVERY-SOP.md`
+
+## Local Demo Stack
+
+```bash
+./scripts/start-local-stack.sh demo-local
+./scripts/stop-local-stack.sh
 ```
 
 ## Update OpenClaw Core

@@ -103,8 +103,9 @@
   // -- BizClaw Plugin --
   "plugins": {
     "enabled": true,
+    "allow": ["bizclaw"],
     "load": {
-      "paths": ["./overlay/plugin"]
+      "paths": ["./overlay/bizclaw"]
     },
     "entries": {
       "bizclaw": {

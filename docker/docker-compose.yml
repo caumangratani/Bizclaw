@@ -1,26 +1,35 @@
-version: "3.8"
-
 services:
   bizclaw:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: bizclaw-agent
+    container_name: bizclaw-${CLIENT_ID:-default}
     restart: unless-stopped
     ports:
-      - "18789:18789"
-      - "18790:18790"
+      - "${BIZCLAW_PORT:-18789}:18789"
     volumes:
-      - bizclaw-data:/home/bizclaw/.bizclaw
+      - ../clients/${CLIENT_ID}/data:/data
     environment:
-      - BIZCLAW_GATEWAY_TOKEN=${BIZCLAW_GATEWAY_TOKEN}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    networks:
-      - bizclaw-net
-
-volumes:
-  bizclaw-data:
-
-networks:
-  bizclaw-net:
-    driver: bridge
+      - NODE_ENV=production
+      - OPENCLAW_STATE_DIR=/data
+      - OPENCLAW_CONFIG_PATH=/data/openclaw.json
+      - OPENCLAW_WORKSPACE_DIR=/data/workspace
+      - OPENCLAW_GATEWAY_PORT=18789
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENCLAW_GATEWAY_TOKEN=${GATEWAY_TOKEN:-}
+      - CLIENT_NAME=${CLIENT_NAME:-BizClaw Client}
+      - CLIENT_BUSINESS=${CLIENT_BUSINESS:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+    env_file:
+      - ../.env
+    command:
+      - node
+      - openclaw.mjs
+      - gateway
+      - --allow-unconfigured
+      - --bind
+      - lan
+      - --port
+      - "18789"

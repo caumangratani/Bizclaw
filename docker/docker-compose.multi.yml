@@ -1,0 +1,55 @@
+# BizClaw Multi-Client Docker Compose
+# For local testing of multiple clients simultaneously
+#
+# Usage:
+#   docker compose -f docker/docker-compose.multi.yml up -d --build
+#
+# Prerequisites:
+#   1. Create clients: ./scripts/new-client.sh demo "Demo Corp" "Technology"
+#   2. Create clients: ./scripts/new-client.sh sharma "Sharma Traders" "Textiles"
+#   3. Add API keys to each client's .env file
+
+services:
+  client-demo:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: bizclaw-demo
+    restart: unless-stopped
+    ports:
+      - "18789:18789"
+    volumes:
+      - ./clients/demo/data:/data/.openclaw
+      - ./clients/demo/data/workspace:/data/workspace
+    env_file:
+      - ../clients/demo/.env
+    environment:
+      - NODE_ENV=production
+      - OPENCLAW_STATE_DIR=/data/.openclaw
+      - OPENCLAW_WORKSPACE=/data/workspace
+    networks:
+      - bizclaw-net
+
+  client-sharma:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: bizclaw-sharma
+    restart: unless-stopped
+    ports:
+      - "18790:18789"
+    volumes:
+      - ./clients/sharma/data:/data/.openclaw
+      - ./clients/sharma/data/workspace:/data/workspace
+    env_file:
+      - ../clients/sharma/.env
+    environment:
+      - NODE_ENV=production
+      - OPENCLAW_STATE_DIR=/data/.openclaw
+      - OPENCLAW_WORKSPACE=/data/workspace
+    networks:
+      - bizclaw-net
+
+networks:
+  bizclaw-net:
+    driver: bridge

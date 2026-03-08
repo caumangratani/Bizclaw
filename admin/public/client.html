@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizClaw Client Detail</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07110b;
+      --panel: #102016;
+      --border: rgba(84, 120, 99, 0.34);
+      --text: #eef6ef;
+      --muted: #9eb2a4;
+      --accent: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #051008, var(--bg));
+    }
+    .shell {
+      width: min(960px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+    .panel {
+      background: rgba(16, 32, 22, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    h1, h2 { margin: 0 0 8px; }
+    .muted { color: var(--muted); }
+    dl {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 10px 14px;
+      margin: 0;
+    }
+    dt { color: var(--muted); }
+    dd { margin: 0; }
+    textarea, input, select {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+    }
+    textarea { min-height: 180px; resize: vertical; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .button {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .button-primary {
+      background: linear-gradient(135deg, #16a34a, var(--accent));
+      color: #041008;
+      border: 0;
+    }
+    .status {
+      display: inline-flex;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .save-state {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    @media (max-width: 720px) {
+      .shell { width: min(100% - 24px, 960px); }
+      .top, .row, dl { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="top">
+      <div>
+        <a class="button" href="/">← Back</a>
+      </div>
+      <div class="actions">
+        <a class="button" href="#" id="open-gateway" target="_blank" rel="noreferrer">Open gateway</a>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="top">
+        <div>
+          <h1 id="client-name">Loading...</h1>
+          <div class="muted" id="client-subtitle"></div>
+        </div>
+        <div class="status" id="client-status">Loading</div>
+      </div>
+      <dl id="client-meta"></dl>
+    </section>
+
+    <div class="row">
+      <section class="panel">
+        <h2>Client notes</h2>
+        <p class="muted">Keep onboarding, customizations, pain points, and support history here.</p>
+        <textarea id="notes"></textarea>
+        <div class="actions" style="margin-top:12px;">
+          <button class="button button-primary" id="save-notes">Save notes</button>
+        </div>
+        <div class="save-state" id="notes-state"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Billing</h2>
+        <p class="muted">Track installation fee and AMC/retainer for this client.</p>
+        <div style="display:grid; gap:10px;">
+          <input id="plan" placeholder="Plan name">
+          <input id="setupFeeInr" type="number" min="0" placeholder="Setup fee (INR)">
+          <input id="monthlyFeeInr" type="number" min="0" placeholder="Monthly fee (INR)">
+          <select id="paymentStatus">
+            <option value="PENDING">Pending</option>
+            <option value="PAID">Paid</option>
+            <option value="OVERDUE">Overdue</option>
+          </select>
+          <input id="nextDueAt" type="date">
+          <textarea id="billingNotes" placeholder="Billing notes"></textarea>
+        </div>
+        <div class="actions" style="margin-top:12px;">
+          <button class="button button-primary" id="save-billing">Save billing</button>
+        </div>
+        <div class="save-state" id="billing-state"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const clientId = window.location.pathname.split("/").pop();
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value;
+    }
+
+    function formatDate(value) {
+      if (!value) return "-";
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+    }
+
+    async function load() {
+      const response = await fetch(`/api/clients/${clientId}`);
+      if (response.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      if (!response.ok) {
+        setText("client-name", "Client not found");
+        return;
+      }
+
+      const data = await response.json();
+      const client = data.client;
+
+      setText("client-name", client.clientName);
+      setText("client-subtitle", `${client.businessType} · ${client.clientId}`);
+      setText("client-status", client.health.status);
+      document.getElementById("open-gateway").href = client.port ? `http://127.0.0.1:${client.port}` : "#";
+
+      document.getElementById("client-meta").innerHTML = `
+        <dt>Port</dt><dd>${client.port || "-"}</dd>
+        <dt>Phone</dt><dd>${client.phone || "-"}</dd>
+        <dt>Email</dt><dd>${client.email || "-"}</dd>
+        <dt>Created</dt><dd>${formatDate(client.createdAt)}</dd>
+        <dt>Latest backup</dt><dd>${formatDate(client.backupInfo.latestBackup)}</dd>
+        <dt>Gateway token</dt><dd>${client.gatewayTokenConfigured ? "Configured" : "Missing"}</dd>
+      `;
+
+      document.getElementById("notes").value = data.notes || "";
+      const billing = client.billing || {};
+      document.getElementById("plan").value = billing.plan || "";
+      document.getElementById("setupFeeInr").value = billing.setupFeeInr || "";
+      document.getElementById("monthlyFeeInr").value = billing.monthlyFeeInr || "";
+      document.getElementById("paymentStatus").value = billing.paymentStatus || "PENDING";
+      document.getElementById("nextDueAt").value = billing.nextDueAt || "";
+      document.getElementById("billingNotes").value = billing.notes || "";
+    }
+
+    document.getElementById("save-notes").addEventListener("click", async () => {
+      const notes = document.getElementById("notes").value;
+      const response = await fetch(`/api/clients/${clientId}/notes`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes })
+      });
+      document.getElementById("notes-state").textContent = response.ok ? "Notes saved." : "Failed to save notes.";
+    });
+
+    document.getElementById("save-billing").addEventListener("click", async () => {
+      const payload = {
+        plan: document.getElementById("plan").value,
+        setupFeeInr: document.getElementById("setupFeeInr").value,
+        monthlyFeeInr: document.getElementById("monthlyFeeInr").value,
+        paymentStatus: document.getElementById("paymentStatus").value,
+        nextDueAt: document.getElementById("nextDueAt").value,
+        notes: document.getElementById("billingNotes").value
+      };
+      const response = await fetch(`/api/billing/${clientId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById("billing-state").textContent = response.ok ? "Billing saved." : "Failed to save billing.";
+    });
+
+    load();
+  </script>
+</body>
+</html>

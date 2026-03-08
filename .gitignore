@@ -7,10 +7,19 @@ node_modules/
 # Environment
 .env
 .env.local
+clients/*/.env
 
 # Client data (sensitive)
+clients/*/
+!clients/TEMPLATE/
+!clients/TEMPLATE/**
 clients/*/data/
 clients/*/logs/
+clients/*/.env
+
+# Local tooling artifacts
+.playwright-cli/
+.local/
 
 # OS files
 .DS_Store
