@@ -95,12 +95,16 @@ echo "Updating package.json..."
 cd "$BUILD_DIR"
 node -e "
 const pkg = require('./package.json');
-pkg.name = 'bizclaw';
+// Keep the internal package name stable for upstream runtime helpers that
+// resolve the package root by name. Branding stays BizClaw via metadata/bin/UI.
+pkg.name = 'openclaw';
 pkg.description = 'BizClaw - AI Business Agent for Indian MSMEs by Bizgenix AI Solutions';
 pkg.author = 'Bizgenix AI Solutions Pvt. Ltd. <hello@bizgenix.in>';
 pkg.homepage = 'https://bizgenix.in';
-pkg.bin = { bizclaw: pkg.bin?.openclaw || './openclaw.mjs' };
-delete pkg.bin.openclaw;
+pkg.bin = {
+  ...(pkg.bin || {}),
+  bizclaw: pkg.bin?.openclaw || './openclaw.mjs'
+};
 require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\n');
 "
 cd "$ROOT_DIR"
