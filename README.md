@@ -96,6 +96,8 @@ The working install and handoff process is documented in:
 - `docs/launch/SAAS-OPERATING-MODEL.md`
 - `docs/launch/PRODUCTION-HOSTING-PLAN.md`
 - `docs/launch/SMARTMITRA-CONSOLIDATION-PLAN.md`
+- `docs/launch/RAILWAY-WEBSITE-DEPLOY.md`
+- `docs/launch/DO-PILOT-CUSTOMER-RUNBOOK.md`
 
 ## Public Website Deployment
 
