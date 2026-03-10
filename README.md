@@ -78,6 +78,9 @@ BizClaw is an autonomous AI business agent that helps Indian MSMEs automate oper
 # Create a new client
 ./scripts/new-client.sh acme-textiles "Acme Textiles" "Textiles" "+919876543210"
 
+# Provision a managed sellable client + admin billing record
+./scripts/provision-managed-client.sh acme-textiles "Acme Textiles" "Textiles" "+919876543210"
+
 # Run locally
 ./scripts/run-client-local.sh acme-textiles
 
@@ -90,6 +93,7 @@ BizClaw is an autonomous AI business agent that helps Indian MSMEs automate oper
 The working install and handoff process is documented in:
 
 - `docs/launch/CLIENT-DELIVERY-SOP.md`
+- `docs/launch/SAAS-OPERATING-MODEL.md`
 
 ## Local Demo Stack
 
@@ -97,6 +101,21 @@ The working install and handoff process is documented in:
 ./scripts/start-local-stack.sh demo-local
 ./scripts/stop-local-stack.sh
 ```
+
+## Upstream Sync
+
+To safely pull new OpenClaw changes into BizClaw:
+
+```bash
+./scripts/sync-openclaw-safe.sh
+```
+
+That flow:
+
+- creates a local sync branch
+- updates the OpenClaw submodule pointer
+- rebuilds BizClaw
+- creates a checkpoint commit for review
 
 ## Update OpenClaw Core
 
