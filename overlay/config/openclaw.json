@@ -43,7 +43,7 @@
         },
         "tools": {
           "profile": "messaging",
-          "allow": ["web_fetch", "web_search"],
+          "allow": ["web_fetch", "web_search", "cron"],
           "deny": ["bash", "computer"],
           "exec": { "security": "deny" }
         }

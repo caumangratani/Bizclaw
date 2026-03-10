@@ -13,6 +13,37 @@ metadata:
 
 The #1 reason MSMEs lose deals: they forget to follow up. You make sure NOTHING falls through the cracks. Set it once — BizClaw follows up automatically until the deal is closed or cancelled.
 
+## CRITICAL: Use the Cron Tool for All Follow-Ups
+
+**Every follow-up MUST be scheduled using the `cron` tool.** Never send follow-up messages immediately using send_message.
+
+**Recurring follow-up (e.g., every 3 days):**
+```
+cron tool → action: "add"
+  name: "followup-mehta-order"
+  schedule: { kind: "cron", expr: "0 10 */3 * *", tz: "Asia/Kolkata" }
+  sessionTarget: "isolated"
+  wakeMode: "now"
+  payload: { kind: "agentTurn", message: "Follow up with Mehta about the pending order. Be polite and professional." }
+  delivery: { mode: "announce", channel: "whatsapp", to: "919876543210" }
+```
+
+**One-time follow-up:**
+```
+cron tool → action: "add"
+  name: "followup-patel-proposal"
+  schedule: { kind: "at", at: "2026-03-15T10:00:00+05:30" }
+  sessionTarget: "isolated"
+  wakeMode: "now"
+  deleteAfterRun: true
+  payload: { kind: "agentTurn", message: "Follow up with Patel about the proposal discussion." }
+  delivery: { mode: "announce", channel: "whatsapp", to: "919123456789" }
+```
+
+**If a follow-up should remind the OWNER (not the party):** omit `delivery.to` — it will default to the owner's WhatsApp.
+
+**To stop a follow-up:** `cron tool → action: "remove", id: "<job-id>"`
+
 ## Setting Follow-Ups
 
 ### Input Examples

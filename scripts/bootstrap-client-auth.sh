@@ -119,10 +119,6 @@ for (const filePath of paths) {
   }
 }
 
-if (Object.keys(profiles).length === 0) {
-  profiles;
-}
-
 const mergedProfiles = { ...store.profiles, ...profiles };
 if (Object.keys(mergedProfiles).length === 0) {
   process.stdout.write("0");

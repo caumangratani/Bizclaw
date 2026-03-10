@@ -34,10 +34,11 @@ async function writeJson(filePath, value) {
 
 async function loadConfig() {
   const config = await readJson(configPath, {});
+  const envPasswordHash = String(process.env.BIZCLAW_ADMIN_PASSWORD_HASH || "").trim();
   return {
     port: config.port ?? 18800,
     bind: config.bind ?? "127.0.0.1",
-    adminPasswordHash: config.adminPasswordHash ?? "",
+    adminPasswordHash: envPasswordHash || (config.adminPasswordHash ?? ""),
     sessionHours: config.sessionHours ?? 24,
     sessionCookieName: config.sessionCookieName ?? "bizclaw_admin_session",
     clientsDir: path.resolve(rootDir, config.clientsDir ?? "../clients"),
@@ -385,8 +386,7 @@ async function ensureFiles() {
 }
 
 app.get("/healthz", async (_req, res) => {
-  const config = await loadConfig();
-  res.json({ ok: true, port: config.port, bind: config.bind });
+  res.json({ ok: true });
 });
 
 app.get("/login", async (_req, res) => {
@@ -400,7 +400,7 @@ app.post("/api/login", async (req, res) => {
   if (!config.adminPasswordHash) {
     res.status(503).json({
       error:
-        "Admin password hash is empty. Set admin.config.json -> adminPasswordHash before using the panel."
+        "Admin password hash is empty. Set BIZCLAW_ADMIN_PASSWORD_HASH before using the panel."
     });
     return;
   }

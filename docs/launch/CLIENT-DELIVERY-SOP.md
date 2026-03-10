@@ -17,7 +17,9 @@ Edit:
 
 Set at least:
 
-- `OPENAI_API_KEY` or `GOOGLE_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `OPENAI_API_KEY` for fallback model coverage
+- `GOOGLE_API_KEY` only if the client uses Gemini-specific flows
 - `GATEWAY_TOKEN` if you want to override the generated token
 - `TELEGRAM_BOT_TOKEN` if Telegram is part of the deal
 

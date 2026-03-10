@@ -103,9 +103,32 @@ function findWhatsAppState() {
   return { linked: false, path: null, fileCount: 0 };
 }
 
+function checkGateway(port) {
+  if (!port || !/^\d+$/.test(String(port))) {
+    return { healthy: false, httpCode: null };
+  }
+
+  const request = require("child_process").spawnSync(
+    "curl",
+    ["-s", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "2", `http://127.0.0.1:${port}/`],
+    { encoding: "utf8" }
+  );
+
+  if (request.status !== 0) {
+    return { healthy: false, httpCode: null };
+  }
+
+  const httpCode = (request.stdout || "").trim();
+  return {
+    healthy: httpCode === "200" || httpCode === "401",
+    httpCode: httpCode || null
+  };
+}
+
 const env = parseEnv(path.join(clientDir, ".env"));
 const config = readJson(path.join(clientDir, "data", "openclaw.json"), readJson(path.join(clientDir, "openclaw.json"), {}));
 const defaultAgentId = resolveDefaultAgentId(config);
+const gateway = checkGateway(env.BIZCLAW_PORT || "");
 const agentRoots = [
   path.join(clientDir, "data", "agents"),
   path.join(clientDir, "data", ".openclaw", "agents")
@@ -127,6 +150,7 @@ for (const root of agentRoots) {
 const readiness = {
   clientId,
   port: env.BIZCLAW_PORT || "",
+  gateway,
   tokenConfigured: Boolean(env.GATEWAY_TOKEN),
   defaultAgentId,
   defaultAgentAuth: defaultAuth,
@@ -135,6 +159,7 @@ const readiness = {
 };
 
 readiness.ready = Boolean(
+  readiness.gateway.healthy &&
   readiness.tokenConfigured &&
   readiness.defaultAgentAuth.profileCount > 0 &&
   readiness.mainAgentAuth.profileCount > 0 &&
@@ -151,6 +176,7 @@ console.log(`  BizClaw readiness: ${clientId}`);
 console.log("================================================================");
 console.log("");
 console.log(`  Port:               ${readiness.port || "-"}`);
+console.log(`  Gateway:            ${readiness.gateway.healthy ? `healthy (${readiness.gateway.httpCode})` : "down"}`);
 console.log(`  Token:              ${readiness.tokenConfigured ? "configured" : "missing"}`);
 console.log(`  Default agent:      ${readiness.defaultAgentId}`);
 console.log(`  Default agent auth: ${readiness.defaultAgentAuth.profileCount > 0 ? readiness.defaultAgentAuth.providers.join(", ") : "missing"}`);

@@ -13,6 +13,83 @@ metadata:
 
 You set reminders from natural language — text or voice. Owners are always busy, always multitasking. Make reminder-setting instant and foolproof.
 
+## CRITICAL: Use the Cron Tool — Never Send Immediately
+
+**When a user asks to schedule or remind, you MUST use the `cron` tool to create a real persistent job. NEVER use `send_message` directly for future-time reminders.**
+
+### How to Schedule with the Cron Tool
+
+**One-time reminder:**
+```
+cron tool → action: "add"
+  name: "reminder-call-mehta"
+  schedule: { kind: "at", at: "2026-03-10T15:00:00+05:30" }
+  sessionTarget: "isolated"
+  wakeMode: "now"
+  deleteAfterRun: true
+  payload: { kind: "agentTurn", message: "🔔 Reminder! Call Mehta — it's 3:00 PM" }
+  delivery: { mode: "announce", channel: "whatsapp" }
+```
+
+**Recurring reminder:**
+```
+cron tool → action: "add"
+  name: "weekly-gst-check"
+  schedule: { kind: "cron", expr: "0 9 * * 1", tz: "Asia/Kolkata" }
+  sessionTarget: "isolated"
+  wakeMode: "now"
+  payload: { kind: "agentTurn", message: "🔔 Weekly Reminder! GST check karo" }
+  delivery: { mode: "announce", channel: "whatsapp" }
+```
+
+**Snooze (reschedule):**
+```
+cron tool → action: "add"
+  name: "snooze-call-mehta"
+  schedule: { kind: "at", at: "<30 min from now in ISO 8601>" }
+  deleteAfterRun: true
+  ...same payload...
+```
+
+**Send to a SPECIFIC phone number (not the owner):**
+```
+cron tool → action: "add"
+  name: "collection-sharma-traders"
+  schedule: { kind: "at", at: "2026-03-13T10:00:00+05:30" }
+  sessionTarget: "isolated"
+  wakeMode: "now"
+  deleteAfterRun: true
+  payload: { kind: "agentTurn", message: "Send a polite payment reminder to this party" }
+  delivery: { mode: "announce", channel: "whatsapp", to: "919876543210" }
+```
+
+The `delivery.to` field is the phone number (with country code, no +). This sends the message TO that number, not to the owner.
+
+**Batch collection reminders (multiple parties):**
+When the owner gives a list of parties, create ONE cron job per party:
+```
+Party: Sharma Traders, +919876543210, Rs.50,000 outstanding
+Party: Patel Textiles, +919123456789, Rs.1,25,000 outstanding
+
+→ Create 2 separate cron jobs:
+  Job 1: delivery.to = "919876543210", schedule 3 days from now
+  Job 2: delivery.to = "919123456789", schedule 3 days from now
+```
+
+Each job's payload.message should instruct the agent to compose a polite, professional collection message including the party name and amount.
+
+### Time Conversion Rules
+- Always convert user's time to ISO 8601 with `+05:30` offset (IST)
+- "3 baje" = ask AM or PM, then convert
+- "2 ghante baad" = current time + 2 hours, format as ISO 8601
+- "kal subah 9 baje" = tomorrow 09:00:00+05:30
+- "har Monday" = cron expression `0 9 * * 1` with tz `Asia/Kolkata`
+
+### Managing Existing Reminders
+- **List:** `cron tool → action: "list"`
+- **Cancel:** `cron tool → action: "remove", id: "<job-id>"`
+- **Snooze:** Remove old job, add new one with updated time
+
 ## How It Works
 
 Parse natural language into:

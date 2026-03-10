@@ -66,39 +66,52 @@ mkdir -p "$CLIENT_DIR/logs"
 # Generate gateway token (24-byte hex = 48 chars)
 GATEWAY_TOKEN=$(openssl rand -hex 24 2>/dev/null || head -c 48 /dev/urandom | od -An -tx1 | tr -d ' \n')
 
-# Replace placeholders in config.json
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  # macOS sed
-  sed -i '' "s/TEMPLATE/$CLIENT_ID/g" "$CLIENT_DIR/config.json"
-  sed -i '' "s/Template Client/$(echo "$CLIENT_NAME" | sed 's/[&/\]/\\&/g')/g" "$CLIENT_DIR/config.json"
-  sed -i '' "s/\"createdAt\": \"\"/\"createdAt\": \"$DATE\"/" "$CLIENT_DIR/config.json"
-  sed -i '' "s/\"businessType\": \"\"/\"businessType\": \"$(echo "$CLIENT_BUSINESS" | sed 's/[&/\]/\\&/g')\"/" "$CLIENT_DIR/config.json"
-  sed -i '' "s/\"phone\": \"\"/\"phone\": \"$CLIENT_PHONE\"/" "$CLIENT_DIR/config.json"
-else
-  # Linux sed
-  sed -i "s/TEMPLATE/$CLIENT_ID/g" "$CLIENT_DIR/config.json"
-  sed -i "s/Template Client/$(echo "$CLIENT_NAME" | sed 's/[&/\]/\\&/g')/g" "$CLIENT_DIR/config.json"
-  sed -i "s/\"createdAt\": \"\"/\"createdAt\": \"$DATE\"/" "$CLIENT_DIR/config.json"
-  sed -i "s/\"businessType\": \"\"/\"businessType\": \"$(echo "$CLIENT_BUSINESS" | sed 's/[&/\]/\\&/g')\"/" "$CLIENT_DIR/config.json"
-  sed -i "s/\"phone\": \"\"/\"phone\": \"$CLIENT_PHONE\"/" "$CLIENT_DIR/config.json"
-fi
+CLIENT_DIR="$CLIENT_DIR" \
+CLIENT_ID="$CLIENT_ID" \
+CLIENT_NAME="$CLIENT_NAME" \
+CLIENT_BUSINESS="$CLIENT_BUSINESS" \
+CLIENT_PHONE="$CLIENT_PHONE" \
+DATE="$DATE" \
+node <<'NODE'
+const fs = require("fs");
+const path = require("path");
 
-# Replace placeholders in openclaw.json
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' "s/TEMPLATE/$CLIENT_ID/g" "$CLIENT_DIR/openclaw.json"
-else
-  sed -i "s/TEMPLATE/$CLIENT_ID/g" "$CLIENT_DIR/openclaw.json"
-fi
+const clientDir = process.env.CLIENT_DIR;
+const jobs = [
+  {
+    file: "config.json",
+    update(raw) {
+      return raw
+        .replaceAll("TEMPLATE", process.env.CLIENT_ID)
+        .replaceAll("Template Client", process.env.CLIENT_NAME)
+        .replace('"createdAt": ""', `"createdAt": "${process.env.DATE}"`)
+        .replace('"businessType": ""', `"businessType": ${JSON.stringify(process.env.CLIENT_BUSINESS)}`)
+        .replace('"phone": ""', `"phone": ${JSON.stringify(process.env.CLIENT_PHONE)}`);
+    }
+  },
+  {
+    file: "openclaw.json",
+    update(raw) {
+      return raw.replaceAll("TEMPLATE", process.env.CLIENT_ID);
+    }
+  },
+  {
+    file: "soul.md",
+    update(raw) {
+      return raw
+        .replaceAll("TEMPLATE_CLIENT_NAME", process.env.CLIENT_NAME)
+        .replaceAll("TEMPLATE_CLIENT_BUSINESS", process.env.CLIENT_BUSINESS);
+    }
+  }
+];
 
-# Replace placeholders in soul.md
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed -i '' "s/TEMPLATE_CLIENT_NAME/$CLIENT_NAME/g" "$CLIENT_DIR/soul.md"
-  sed -i '' "s/TEMPLATE_CLIENT_BUSINESS/$CLIENT_BUSINESS/g" "$CLIENT_DIR/soul.md"
-else
-  sed -i "s/TEMPLATE_CLIENT_NAME/$CLIENT_NAME/g" "$CLIENT_DIR/soul.md"
-  sed -i "s/TEMPLATE_CLIENT_BUSINESS/$CLIENT_BUSINESS/g" "$CLIENT_DIR/soul.md"
-fi
+for (const job of jobs) {
+  const target = path.join(clientDir, job.file);
+  const raw = fs.readFileSync(target, "utf8");
+  fs.writeFileSync(target, job.update(raw), "utf8");
+}
+NODE
 
 # Copy soul.md and AGENTS.md to workspace data dir
 cp "$CLIENT_DIR/soul.md" "$CLIENT_DIR/data/workspace/SOUL.md"
@@ -125,9 +138,9 @@ GATEWAY_TOKEN=$GATEWAY_TOKEN
 BIZCLAW_PORT=$CLIENT_PORT
 
 # -- API Keys (copy from master .env or set per-client) --
-GOOGLE_API_KEY=
-OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
+GOOGLE_API_KEY=
 
 # -- Channels --
 TELEGRAM_BOT_TOKEN=

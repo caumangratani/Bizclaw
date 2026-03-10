@@ -15,6 +15,13 @@ fi
 echo "=== BizClaw Brand Patch ==="
 echo "Patching directory: $BUILD_DIR"
 
+replace_in_file() {
+  local old="$1"
+  local new="$2"
+  local file="$3"
+  OLD_VALUE="$old" NEW_VALUE="$new" perl -0pi -e 'BEGIN { $old = $ENV{"OLD_VALUE"}; $new = $ENV{"NEW_VALUE"}; } s/\Q$old\E/$new/g' "$file"
+}
+
 # String replacements (case-sensitive, most specific first).
 # Use a plain newline-delimited list so the script still runs on macOS's
 # bundled Bash 3.2, which does not support associative arrays.
@@ -41,8 +48,9 @@ while IFS='|' read -r old new; do
   echo "  Replacing '$old' -> '$new'"
 
   for pattern in $FILE_PATTERNS; do
-    find "$BUILD_DIR" -name "$pattern" -type f -exec \
-      sed -i '' "s/${old}/${new}/g" {} + 2>/dev/null || true
+    while IFS= read -r -d '' file; do
+      replace_in_file "$old" "$new" "$file"
+    done < <(find "$BUILD_DIR" -name "$pattern" -type f -print0)
   done
 done <<EOF
 $REPLACEMENTS
@@ -50,8 +58,9 @@ EOF
 
 # Keep the runtime web component tag stable. The bundled UI registers
 # `openclaw-app`; changing the element name breaks the dashboard boot.
-find "$BUILD_DIR" -name "*.html" -type f -exec \
-  sed -i '' "s/bizclaw-app/openclaw-app/g" {} + 2>/dev/null || true
+while IFS= read -r -d '' file; do
+  replace_in_file "bizclaw-app" "openclaw-app" "$file"
+done < <(find "$BUILD_DIR" -name "*.html" -type f -print0)
 
 # Copy branding assets if they exist
 BRANDING_DIR="./overlay/branding"
