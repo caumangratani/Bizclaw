@@ -52,7 +52,26 @@ This is where you tune:
 
 Open the printed `Channels` URL and connect WhatsApp.
 
-If the first scan succeeds but the provider asks for a restart, restart the local gateway once and refresh the page.
+BizClaw now auto-waits after QR generation, so `Show QR` should be treated as one flow:
+
+- click `Show QR`
+- keep the page open
+- scan from WhatsApp Linked Devices
+- wait for the UI to finish the login cycle
+
+If you are operating a remote VPS through an SSH tunnel, use the local forwarded URL
+for the control UI instead of the raw server IP. The control UI is only reliable on
+`https://...` or `http://127.0.0.1:<port>` style loopback URLs.
+
+If the provider returns `status=515 restart required`, the gateway wait flow should retry once automatically.
+If WhatsApp still shows `logged out` after that, do a clean `Logout` and generate a fresh QR.
+If the client is stuck in a stale `logged out` / `401 Unauthorized` loop, run:
+
+```bash
+./scripts/reset-client-whatsapp.sh <client-id>
+```
+
+Then restart the runtime and relink WhatsApp.
 
 ## 6. Acceptance checklist
 
@@ -88,9 +107,25 @@ Then:
 - place the correct `.env` on the server
 - start `bizclaw`
 - open the tokenized URL
-- connect WhatsApp once
+- connect WhatsApp once and keep the Channels page open until the login cycle completes
 
-## 8. Internal operator setup
+## 8. WhatsApp production note
+
+For VPS installs, the safe operating rule is:
+
+- use a proper domain + HTTPS for the customer dashboard
+- do not rely on bare IP for operator access
+- do not treat `QR visible` as success
+- success is only when WhatsApp shows `Running: Yes` and `Connected: Yes`
+
+If a VPS pairing attempt fails with `logged out` or `status=515 restart required`:
+
+1. click `Logout`
+2. generate a fresh QR
+3. keep the page open until the auto-wait flow finishes
+4. only hand off after a real inbound message test
+
+## 9. Internal operator setup
 
 Track the client in the Bizgenix admin panel:
 
@@ -101,7 +136,7 @@ Track the client in the Bizgenix admin panel:
 - last WhatsApp reconnect date
 - renewal / billing date
 
-## 9. Support posture
+## 10. Support posture
 
 For every live client keep:
 

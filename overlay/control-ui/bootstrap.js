@@ -113,11 +113,81 @@
     });
   }
 
+  function installWhatsAppAutoWait(root) {
+    if (!root || root.__bizclawWhatsAppAutoWaitInstalled || !root.addEventListener) {
+      return;
+    }
+    root.__bizclawWhatsAppAutoWaitInstalled = true;
+
+    function buttonLabel(el) {
+      return (el && typeof el.textContent === "string" ? el.textContent : "").trim().toLowerCase();
+    }
+
+    function isEnabledButton(el, label) {
+      return (
+        el &&
+        el.tagName === "BUTTON" &&
+        !el.disabled &&
+        buttonLabel(el) === label
+      );
+    }
+
+    function triggerWaitFlow() {
+      var attempts = 0;
+      var timer = window.setInterval(function () {
+        attempts += 1;
+        var buttons = root.querySelectorAll ? root.querySelectorAll("button") : [];
+        var waitButton = Array.prototype.find.call(buttons, function (el) {
+          return isEnabledButton(el, "wait for scan");
+        });
+
+        if (waitButton) {
+          window.clearInterval(timer);
+          waitButton.click();
+          return;
+        }
+
+        if (attempts >= 120) {
+          window.clearInterval(timer);
+        }
+      }, 500);
+    }
+
+    function findButtonFromEvent(event) {
+      var path = typeof event.composedPath === "function" ? event.composedPath() : [];
+      for (var i = 0; i < path.length; i += 1) {
+        var item = path[i];
+        if (item && item.tagName === "BUTTON") {
+          return item;
+        }
+      }
+      var target = event.target;
+      if (target && typeof target.closest === "function") {
+        return target.closest("button");
+      }
+      return null;
+    }
+
+    root.addEventListener(
+      "click",
+      function (event) {
+        var button = findButtonFromEvent(event);
+        var label = buttonLabel(button);
+        if (label === "show qr" || label === "relink") {
+          window.setTimeout(triggerWaitFlow, 150);
+        }
+      },
+      true
+    );
+  }
+
   function applyBranding() {
     patchNode(document);
+    installWhatsAppAutoWait(document);
     document.querySelectorAll("openclaw-app").forEach(function (el) {
       if (el.shadowRoot) {
         patchNode(el.shadowRoot);
+        installWhatsAppAutoWait(el.shadowRoot);
       }
     });
   }

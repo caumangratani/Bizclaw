@@ -62,11 +62,38 @@ Deploy on the VPS:
 ## Acceptance checklist
 
 - dashboard opens from VPS URL
-- WhatsApp QR connects
+- WhatsApp QR completes the full login cycle
 - inbound message works
 - reply works
 - restart preserves session
 - backup script works
+
+## WhatsApp onboarding rule
+
+On Hostinger, do not treat QR display as success.
+
+The correct test is:
+
+1. open Channels
+2. click `Show QR`
+3. keep the page open until the login cycle completes
+4. confirm `Running: Yes`
+5. confirm `Connected: Yes`
+6. send a real inbound WhatsApp message
+
+Implementation note:
+
+- the BizClaw control UI now auto-triggers the wait step after `Show QR` / `Relink`
+- this is required because the WhatsApp provider may return `status=515 restart required`
+  once before the login stabilizes
+- for Hostinger testing, use the SSH tunnel URL such as `http://127.0.0.1:48790/...`
+  instead of the raw VPS IP
+- if WhatsApp still ends in `logged out`, click `Logout`, generate a fresh QR, and retry
+  the full flow once more before judging the VPS unstable
+- if the runtime is stuck in `logged out` with provider `401 Unauthorized`, run
+  `./scripts/reset-client-whatsapp.sh <client-id>`, restart the service, and relink
+
+If the account falls back to `logged out`, do a clean `Logout` and retry with a fresh QR before moving on.
 
 ## Scale rule
 
