@@ -94,6 +94,7 @@ The working install and handoff process is documented in:
 
 - `docs/launch/CLIENT-DELIVERY-SOP.md`
 - `docs/launch/SAAS-OPERATING-MODEL.md`
+- `docs/launch/PRODUCTION-HOSTING-PLAN.md`
 
 ## Local Demo Stack
 
