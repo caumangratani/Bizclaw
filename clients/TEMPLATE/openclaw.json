@@ -4,7 +4,8 @@
   },
   "logging": {
     "level": "info",
-    "consoleLevel": "info"
+    "consoleLevel": "info",
+    "redactSensitive": true
   },
   "update": {
     "checkOnStart": false
@@ -19,30 +20,20 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openai/gpt-4o-mini",
+        "primary": "anthropic/claude-sonnet-4-6",
         "fallbacks": [
-          "openai/gpt-4o",
-          "google/gemini-2.5-flash"
+          "openai/gpt-4o"
         ]
       },
-      "models": {
-        "openai/gpt-4o-mini": {
-          "alias": "fast"
-        },
-        "openai/gpt-4o": {
-          "alias": "smart"
-        },
-        "google/gemini-2.5-flash": {
-          "alias": "gemini-flash"
-        },
-        "google/gemini-2.5-pro": {
-          "alias": "gemini-pro",
-          "params": {
-            "temperature": 0.7
-          }
-        }
+      "heartbeat": {
+        "every": "4h",
+        "target": "whatsapp",
+        "prompt": "Check the time (IST). If morning (6-10 AM): send daily report with priorities, compliance alerts, collections summary, and motivational tip. If midday (11 AM-2 PM): flag overdue follow-ups and pending team tasks. If evening (4-8 PM): wrap up summary. Keep under 200 words. Use Hindi phrases naturally. Follow the daily-report skill format.",
+        "session": "heartbeat"
       },
       "workspace": "${OPENCLAW_WORKSPACE_DIR}",
+      "timeoutSeconds": 300,
+      "maxConcurrent": 2,
       "contextPruning": {
         "mode": "cache-ttl",
         "ttl": "5m"
@@ -50,10 +41,7 @@
       "compaction": {
         "mode": "safeguard"
       },
-      "maxConcurrent": 4,
-      "subagents": {
-        "maxConcurrent": 8
-      }
+      "sandbox": { "mode": "off" }
     },
     "list": [
       {
@@ -63,6 +51,12 @@
         "identity": {
           "name": "BizClaw",
           "avatar": "⚡"
+        },
+        "tools": {
+          "profile": "messaging",
+          "allow": ["web_fetch", "web_search"],
+          "deny": ["bash", "computer"],
+          "exec": { "security": "deny" }
         }
       }
     ]
@@ -72,24 +66,12 @@
       "agentId": "bizclaw-TEMPLATE",
       "match": {
         "channel": "whatsapp",
-        "peer": {
-          "kind": "direct",
-          "id": "*"
-        }
-      }
-    },
-    {
-      "agentId": "bizclaw-TEMPLATE",
-      "match": {
-        "channel": "telegram",
-        "peer": {
-          "kind": "direct",
-          "id": "*"
-        }
+        "peer": { "kind": "direct" }
       }
     }
   ],
   "messages": {
+    "threading": { "enabled": true },
     "ackReactionScope": "group-mentions"
   },
   "commands": {
@@ -111,36 +93,33 @@
       }
     }
   },
-  "web": {
-    "enabled": true
-  },
+  "web": { "enabled": true },
   "channels": {
     "whatsapp": {
-      "dmPolicy": "open",
+      "dmPolicy": "allowlist",
+      "allowFrom": [],
       "selfChatMode": true,
-      "allowFrom": ["*"],
-      "groupPolicy": "open",
+      "groupPolicy": "disabled",
+      "sendReadReceipts": true,
+      "textChunkLimit": 4000,
+      "chunkMode": "length",
+      "mediaMaxMb": 50,
+      "debounceMs": 500,
       "ackReaction": {
         "emoji": "⚡",
         "direct": true,
         "group": "mentions"
       },
-      "debounceMs": 0,
-      "mediaMaxMb": 50
-    },
-    "telegram": {
-      "enabled": false,
-      "dmPolicy": "open",
-      "botToken": "",
-      "allowFrom": ["*"],
-      "groupPolicy": "open",
-      "streaming": "partial"
+      "actions": {
+        "reactions": true,
+        "sendMessage": true,
+        "polls": true
+      }
     }
   },
   "gateway": {
     "port": 18789,
-    "mode": "local",
-    "bind": "loopback",
+    "bind": "lan",
     "controlUi": {
       "enabled": true,
       "root": "./overlay/control-ui"
@@ -152,25 +131,26 @@
   },
   "memory": {
     "backend": "builtin",
+    "persistence": true,
+    "autoSave": true,
     "citations": "auto"
   },
   "skills": {
+    "allowBundled": ["weather", "wacli"],
     "load": {
-      "extraDirs": [
-        "./overlay/skills"
-      ],
-      "watch": false
+      "extraDirs": ["./overlay/skills"],
+      "watch": true
+    },
+    "limits": {
+      "maxSkillsInPrompt": 20,
+      "maxSkillsPromptChars": 50000
     }
   },
   "plugins": {
     "enabled": true,
-    "allow": [
-      "bizclaw"
-    ],
+    "allow": ["bizclaw"],
     "load": {
-      "paths": [
-        "./overlay/bizclaw"
-      ]
+      "paths": ["./overlay/bizclaw"]
     },
     "entries": {
       "whatsapp": { "enabled": true },

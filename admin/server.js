@@ -59,6 +59,191 @@ function parseEnv(raw) {
   return result;
 }
 
+async function pathExists(targetPath) {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function unique(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+async function readAuthProfileStore(filePath) {
+  const store = await readJson(filePath, null);
+  const profiles =
+    store && typeof store === "object" && store.profiles && typeof store.profiles === "object"
+      ? store.profiles
+      : {};
+  const entries = Object.entries(profiles).filter(([, value]) => value && typeof value === "object");
+
+  return {
+    filePath,
+    exists: Boolean(store),
+    profileCount: entries.length,
+    profileIds: entries.map(([profileId]) => profileId),
+    providers: unique(entries.map(([, value]) => value.provider))
+  };
+}
+
+async function readClientConfig(clientDir) {
+  return readJson(path.join(clientDir, "data", "openclaw.json"), {});
+}
+
+function resolveDefaultAgentId(config) {
+  const agents =
+    config && typeof config === "object" && config.agents && Array.isArray(config.agents.list)
+      ? config.agents.list
+      : [];
+  return agents.find((agent) => agent && agent.default)?.id || agents[0]?.id || "main";
+}
+
+async function resolveAgentRoots(clientDir) {
+  const roots = [
+    path.join(clientDir, "data", "agents"),
+    path.join(clientDir, "data", ".openclaw", "agents")
+  ];
+  const result = [];
+  for (const root of roots) {
+    if (await pathExists(root)) result.push(root);
+  }
+  return result;
+}
+
+async function readSessionSummary(filePath, sessionKey) {
+  const store = await readJson(filePath, {});
+  const session = store && typeof store === "object" ? store[sessionKey] : null;
+  if (!session || typeof session !== "object") {
+    return {
+      exists: false,
+      sessionKey,
+      updatedAt: null,
+      lastChannel: null,
+      authProfileOverride: null,
+      lastTo: null
+    };
+  }
+
+  return {
+    exists: true,
+    sessionKey,
+    updatedAt: session.updatedAt || null,
+    lastChannel: session.lastChannel || session.deliveryContext?.channel || null,
+    authProfileOverride: session.authProfileOverride || null,
+    lastTo: session.lastTo || session.deliveryContext?.to || null
+  };
+}
+
+async function getWhatsAppLinkSummary(clientDir) {
+  const candidates = [
+    path.join(clientDir, "data", "credentials", "whatsapp", "default"),
+    path.join(clientDir, "data", ".openclaw", "credentials", "whatsapp", "default"),
+    path.join(clientDir, "data", "credentials", "whatsapp")
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      const entries = await fs.readdir(candidate);
+      const jsonFiles = entries.filter((entry) => entry.endsWith(".json"));
+      if (jsonFiles.length > 0 || entries.includes("creds.json")) {
+        return {
+          linked: true,
+          path: candidate,
+          fileCount: jsonFiles.length || entries.length
+        };
+      }
+    } catch {
+      // Ignore missing directories.
+    }
+  }
+
+  return {
+    linked: false,
+    path: null,
+    fileCount: 0
+  };
+}
+
+async function getClientReadiness(clientDir, env, health) {
+  const config = await readClientConfig(clientDir);
+  const defaultAgentId = resolveDefaultAgentId(config);
+  const agentRoots = await resolveAgentRoots(clientDir);
+
+  let defaultAuth = {
+    filePath: null,
+    exists: false,
+    profileCount: 0,
+    profileIds: [],
+    providers: []
+  };
+  let mainAuth = {
+    filePath: null,
+    exists: false,
+    profileCount: 0,
+    profileIds: [],
+    providers: []
+  };
+  let session = {
+    exists: false,
+    sessionKey: `agent:${defaultAgentId}:main`,
+    updatedAt: null,
+    lastChannel: null,
+    authProfileOverride: null,
+    lastTo: null
+  };
+
+  for (const root of agentRoots) {
+    if (!defaultAuth.exists) {
+      const target = path.join(root, defaultAgentId, "agent", "auth-profiles.json");
+      defaultAuth = await readAuthProfileStore(target);
+    }
+
+    if (!mainAuth.exists) {
+      const target = path.join(root, "main", "agent", "auth-profiles.json");
+      mainAuth = await readAuthProfileStore(target);
+    }
+
+    if (!session.exists) {
+      const sessionPath = path.join(root, defaultAgentId, "sessions", "sessions.json");
+      session = await readSessionSummary(sessionPath, `agent:${defaultAgentId}:main`);
+    }
+  }
+
+  const whatsapp = await getWhatsAppLinkSummary(clientDir);
+  const tokenConfigured = Boolean(env.GATEWAY_TOKEN);
+  const modelAuthReady = defaultAuth.profileCount > 0 && mainAuth.profileCount > 0;
+  const blockers = [];
+
+  if (!tokenConfigured) blockers.push("Gateway token missing");
+  if (health.status !== "UP") blockers.push("Gateway is not reachable");
+  if (defaultAuth.profileCount === 0) blockers.push(`No model auth on ${defaultAgentId}`);
+  if (mainAuth.profileCount === 0) blockers.push("No model auth on fallback main agent");
+  if (!whatsapp.linked) blockers.push("WhatsApp is not linked");
+
+  return {
+    status: blockers.length === 0 ? "READY" : health.status === "UP" ? "SETUP_NEEDED" : "OFFLINE",
+    blockers,
+    checks: {
+      gateway: health.status === "UP",
+      token: tokenConfigured,
+      defaultAgentAuth: defaultAuth.profileCount > 0,
+      mainAgentAuth: mainAuth.profileCount > 0,
+      whatsappLinked: whatsapp.linked
+    },
+    defaultAgentId,
+    session,
+    auth: {
+      defaultAgent: defaultAuth,
+      mainAgent: mainAuth,
+      providers: unique([...defaultAuth.providers, ...mainAuth.providers])
+    },
+    whatsapp
+  };
+}
+
 function getSession(req, config) {
   const token = req.cookies?.[config.sessionCookieName];
   if (!token) return null;
@@ -152,6 +337,7 @@ async function listClients(config) {
         const port = env.BIZCLAW_PORT || "";
         const health = await getGatewayStatus(port);
         const backupInfo = await getBackupInfo(config, clientId);
+        const readiness = await getClientReadiness(clientDir, env, health);
 
         return {
           clientId,
@@ -173,6 +359,7 @@ async function listClients(config) {
             anthropic: Boolean(env.ANTHROPIC_API_KEY)
           },
           health,
+          readiness,
           billing: billing[clientId] || null,
           notePreview: typeof notes[clientId] === "string" ? notes[clientId].slice(0, 120) : "",
           backupInfo
@@ -311,6 +498,8 @@ app.get("/api/security", authRequired(true), async (req, res) => {
   const summary = {
     totalClients: clients.length,
     healthyClients: clients.filter((client) => client.health.status === "UP").length,
+    readyClients: clients.filter((client) => client.readiness.status === "READY").length,
+    whatsappLinkedClients: clients.filter((client) => client.readiness.checks.whatsappLinked).length,
     missingGatewayTokens: clients.filter((client) => !client.gatewayTokenConfigured).length,
     missingAnyApiKey: clients.filter(
       (client) =>

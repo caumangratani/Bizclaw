@@ -96,6 +96,32 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+    .status.warn {
+      background: rgba(245, 158, 11, 0.14);
+      color: #fcd34d;
+    }
+    .status.down {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+    }
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .check {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .check strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .ok { color: #86efac; }
+    .warn-text { color: #fcd34d; }
     .save-state {
       font-size: 13px;
       color: var(--muted);
@@ -127,6 +153,13 @@
         <div class="status" id="client-status">Loading</div>
       </div>
       <dl id="client-meta"></dl>
+    </section>
+
+    <section class="panel">
+      <h2>Launch readiness</h2>
+      <p class="muted">BizClaw should only be handed off when gateway, auth, and WhatsApp are all healthy.</p>
+      <div class="check-grid" id="readiness-grid"></div>
+      <div class="save-state" id="readiness-blockers"></div>
     </section>
 
     <div class="row">
@@ -176,6 +209,16 @@
       return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
     }
 
+    function renderCheck(label, ok, detail) {
+      return `
+        <div class="check">
+          <strong>${label}</strong>
+          <div class="${ok ? "ok" : "warn-text"}">${ok ? "Ready" : "Needs setup"}</div>
+          <div class="muted">${detail}</div>
+        </div>
+      `;
+    }
+
     async function load() {
       const response = await fetch(`/api/clients/${clientId}`);
       if (response.status === 401) {
@@ -190,10 +233,14 @@
 
       const data = await response.json();
       const client = data.client;
+      const readiness = client.readiness;
 
       setText("client-name", client.clientName);
       setText("client-subtitle", `${client.businessType} · ${client.clientId}`);
-      setText("client-status", client.health.status);
+      setText("client-status", readiness.status.replaceAll("_", " "));
+      document.getElementById("client-status").className = `status ${
+        readiness.status === "READY" ? "" : readiness.status === "OFFLINE" ? "down" : "warn"
+      }`.trim();
       document.getElementById("open-gateway").href = client.port ? `http://127.0.0.1:${client.port}` : "#";
 
       document.getElementById("client-meta").innerHTML = `
@@ -203,7 +250,21 @@
         <dt>Created</dt><dd>${formatDate(client.createdAt)}</dd>
         <dt>Latest backup</dt><dd>${formatDate(client.backupInfo.latestBackup)}</dd>
         <dt>Gateway token</dt><dd>${client.gatewayTokenConfigured ? "Configured" : "Missing"}</dd>
+        <dt>Default agent</dt><dd>${readiness.defaultAgentId || "-"}</dd>
+        <dt>Model profiles</dt><dd>${readiness.auth.providers.length ? readiness.auth.providers.join(", ") : "None"}</dd>
+        <dt>Last WhatsApp session</dt><dd>${formatDate(readiness.session.updatedAt)}</dd>
       `;
+
+      document.getElementById("readiness-grid").innerHTML = [
+        renderCheck("Gateway", readiness.checks.gateway, client.port ? `Port ${client.port}` : "No port configured"),
+        renderCheck("Gateway token", readiness.checks.token, client.gatewayTokenConfigured ? "Token present" : "Set GATEWAY_TOKEN"),
+        renderCheck("BizClaw agent auth", readiness.checks.defaultAgentAuth, readiness.auth.defaultAgent.profileCount ? `${readiness.auth.defaultAgent.profileCount} profile(s)` : "Seed auth-profiles.json"),
+        renderCheck("Main agent auth", readiness.checks.mainAgentAuth, readiness.auth.mainAgent.profileCount ? `${readiness.auth.mainAgent.profileCount} profile(s)` : "Seed fallback auth"),
+        renderCheck("WhatsApp linked", readiness.checks.whatsappLinked, readiness.whatsapp.linked ? `Stored in ${readiness.whatsapp.path}` : "Link WhatsApp once from Channels")
+      ].join("");
+      document.getElementById("readiness-blockers").textContent = readiness.blockers.length
+        ? `Blockers: ${readiness.blockers.join(" · ")}`
+        : "No blockers. This client is ready for handoff.";
 
       document.getElementById("notes").value = data.notes || "";
       const billing = client.billing || {};

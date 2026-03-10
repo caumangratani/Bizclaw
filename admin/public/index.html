@@ -133,10 +133,47 @@
       text-transform: uppercase;
     }
 
-    .badge.up { background: rgba(34, 197, 94, 0.15); color: #86efac; }
-    .badge.down { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
-    .badge.degraded { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .badge.up, .badge.ready { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+    .badge.down, .badge.offline { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+    .badge.degraded, .badge.setup_needed { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
     .badge.other { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; }
+
+    .check-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .chip.ok {
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.4);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .chip.warn {
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .blockers {
+      margin-top: 12px;
+      color: #fcd34d;
+      font-size: 13px;
+      line-height: 1.5;
+    }
 
     dl {
       display: grid;
@@ -199,14 +236,14 @@
     function renderStats(items) {
       const total = items.length;
       const up = items.filter((item) => item.health.status === "UP").length;
-      const degraded = items.filter((item) => item.health.status === "DEGRADED").length;
-      const missingBilling = items.filter((item) => !item.billing).length;
+      const ready = items.filter((item) => item.readiness.status === "READY").length;
+      const whatsappLinked = items.filter((item) => item.readiness.checks.whatsappLinked).length;
 
       stats.innerHTML = [
         ["Total clients", total],
         ["Healthy", up],
-        ["Need attention", degraded],
-        ["Missing billing", missingBilling]
+        ["Launch ready", ready],
+        ["WhatsApp linked", whatsappLinked]
       ].map(([label, value]) => `
         <div class="stat">
           <div class="stat-label">${label}</div>
@@ -219,7 +256,14 @@
       if (status === "UP") return "up";
       if (status === "DOWN") return "down";
       if (status === "DEGRADED") return "degraded";
+      if (status === "READY") return "ready";
+      if (status === "OFFLINE") return "offline";
+      if (status === "SETUP_NEEDED") return "setup_needed";
       return "other";
+    }
+
+    function checkChip(label, ok) {
+      return `<span class="chip ${ok ? "ok" : "warn"}">${ok ? "✓" : "!"} ${label}</span>`;
     }
 
     function renderClients(items) {
@@ -235,7 +279,7 @@
               <h2>${client.clientName}</h2>
               <div class="muted">${client.businessType} · ${client.clientId}</div>
             </div>
-            <div class="badge ${badgeClass(client.health.status)}">${client.health.status}</div>
+            <div class="badge ${badgeClass(client.readiness.status)}">${client.readiness.status.replaceAll("_", " ")}</div>
           </div>
 
           <dl>
@@ -244,6 +288,18 @@
             <dt>Backup</dt><dd>${client.backupInfo.latestBackup ? new Date(client.backupInfo.latestBackup).toLocaleString() : "None"}</dd>
             <dt>Billing</dt><dd>${client.billing ? `${client.billing.plan || "Custom"} · Rs.${client.billing.monthlyFeeInr || 0}/mo` : "Not set"}</dd>
           </dl>
+
+          <div class="check-row">
+            ${checkChip("Gateway", client.readiness.checks.gateway)}
+            ${checkChip("Token", client.readiness.checks.token)}
+            ${checkChip("Agent auth", client.readiness.checks.defaultAgentAuth)}
+            ${checkChip("Main auth", client.readiness.checks.mainAgentAuth)}
+            ${checkChip("WhatsApp", client.readiness.checks.whatsappLinked)}
+          </div>
+
+          ${client.readiness.blockers.length ? `
+            <div class="blockers">${client.readiness.blockers.join(" · ")}</div>
+          ` : ""}
 
           <div class="card-actions">
             <a class="button" href="/client/${client.clientId}">Open client</a>

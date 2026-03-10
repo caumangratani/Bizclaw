@@ -1,1 +1,3 @@
-{}
+{
+  "pilot-customer": "Client onboarded: Pilot Customer\nBusiness type: Trading & Distribution\nPrimary phone: +919999999999\nCommercial plan: Managed Private SaaS\nSetup fee: Rs.75000\nMonthly fee: Rs.25000\n\nNext actions:\n- add API keys in the client .env\n- tune soul.md and AGENTS.md for the client use case\n- start the local stack or deploy the VPS/container instance\n- connect WhatsApp and run acceptance tests"
+}

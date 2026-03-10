@@ -1,1 +1,10 @@
-{}
+{
+  "pilot-customer": {
+    "plan": "Managed Private SaaS",
+    "setupFeeInr": 75000,
+    "monthlyFeeInr": 25000,
+    "paymentStatus": "PENDING",
+    "nextDueAt": "2026-04-09",
+    "notes": "Provisioned by Bizgenix on 2026-03-10T12:59:12.091Z."
+  }
+}

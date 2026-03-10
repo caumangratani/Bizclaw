@@ -71,16 +71,16 @@ DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS sed
   sed -i '' "s/TEMPLATE/$CLIENT_ID/g" "$CLIENT_DIR/config.json"
-  sed -i '' "s/Template Client/$CLIENT_NAME/g" "$CLIENT_DIR/config.json"
+  sed -i '' "s/Template Client/$(echo "$CLIENT_NAME" | sed 's/[&/\]/\\&/g')/g" "$CLIENT_DIR/config.json"
   sed -i '' "s/\"createdAt\": \"\"/\"createdAt\": \"$DATE\"/" "$CLIENT_DIR/config.json"
-  sed -i '' "s/\"businessType\": \"\"/\"businessType\": \"$CLIENT_BUSINESS\"/" "$CLIENT_DIR/config.json"
+  sed -i '' "s/\"businessType\": \"\"/\"businessType\": \"$(echo "$CLIENT_BUSINESS" | sed 's/[&/\]/\\&/g')\"/" "$CLIENT_DIR/config.json"
   sed -i '' "s/\"phone\": \"\"/\"phone\": \"$CLIENT_PHONE\"/" "$CLIENT_DIR/config.json"
 else
   # Linux sed
   sed -i "s/TEMPLATE/$CLIENT_ID/g" "$CLIENT_DIR/config.json"
-  sed -i "s/Template Client/$CLIENT_NAME/g" "$CLIENT_DIR/config.json"
+  sed -i "s/Template Client/$(echo "$CLIENT_NAME" | sed 's/[&/\]/\\&/g')/g" "$CLIENT_DIR/config.json"
   sed -i "s/\"createdAt\": \"\"/\"createdAt\": \"$DATE\"/" "$CLIENT_DIR/config.json"
-  sed -i "s/\"businessType\": \"\"/\"businessType\": \"$CLIENT_BUSINESS\"/" "$CLIENT_DIR/config.json"
+  sed -i "s/\"businessType\": \"\"/\"businessType\": \"$(echo "$CLIENT_BUSINESS" | sed 's/[&/\]/\\&/g')\"/" "$CLIENT_DIR/config.json"
   sed -i "s/\"phone\": \"\"/\"phone\": \"$CLIENT_PHONE\"/" "$CLIENT_DIR/config.json"
 fi
 

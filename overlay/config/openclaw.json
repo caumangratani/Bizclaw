@@ -23,9 +23,9 @@
         "fallbacks": ["openai/gpt-4o"]
       },
       "heartbeat": {
-        "every": "8h",
+        "every": "4h",
         "target": "whatsapp",
-        "prompt": "Send a brief morning business update. Include today's GST/compliance deadlines if any, pending collections summary, and one motivational tip. Keep it under 200 words. Use Hindi phrases naturally.",
+        "prompt": "Check the time (IST). If morning (6-10 AM): send daily report with priorities, compliance alerts, collections summary, and motivational tip. If midday (11 AM-2 PM): flag overdue follow-ups and pending team tasks. If evening (4-8 PM): wrap up summary. Keep under 200 words. Use Hindi phrases naturally. Follow the daily-report skill format.",
         "session": "heartbeat"
       },
       "timeoutSeconds": 300,
@@ -126,9 +126,11 @@
     }
   },
 
-  // -- Memory --
+  // -- Memory (persistent per-client storage) --
   "memory": {
-    "backend": "builtin"
+    "backend": "builtin",
+    "persistence": true,
+    "autoSave": true
   },
 
   // -- Logging --
