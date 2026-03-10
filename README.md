@@ -98,6 +98,7 @@ The working install and handoff process is documented in:
 - `docs/launch/SMARTMITRA-CONSOLIDATION-PLAN.md`
 - `docs/launch/RAILWAY-WEBSITE-DEPLOY.md`
 - `docs/launch/DO-PILOT-CUSTOMER-RUNBOOK.md`
+- `docs/launch/HOSTINGER-PILOT-CUSTOMER-RUNBOOK.md`
 
 ## Public Website Deployment
 
