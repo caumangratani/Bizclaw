@@ -21,6 +21,15 @@ Set at least:
 - `GATEWAY_TOKEN` if you want to override the generated token
 - `TELEGRAM_BOT_TOKEN` if Telegram is part of the deal
 
+Then run:
+
+```bash
+./scripts/bootstrap-client-auth.sh <client-id>
+```
+
+BizClaw now mirrors provider auth into both the client agent and the fallback `main`
+agent, so WhatsApp replies do not leak backend auth errors.
+
 ## 3. Customize the business behavior
 
 Edit:
@@ -86,6 +95,19 @@ Before client handoff, verify all of this:
 - one inbound WhatsApp message gets an ack reaction
 - one inbound WhatsApp message gets an actual reply
 - chat page shows the WhatsApp conversation session
+
+Run the backend readiness check too:
+
+```bash
+./scripts/client-readiness.sh <client-id>
+```
+
+The client is only launch-ready when it reports:
+
+- token configured
+- default agent auth present
+- main agent auth present
+- WhatsApp linked
 
 ## 7. Deploy for the client
 
