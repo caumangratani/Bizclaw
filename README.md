@@ -95,6 +95,18 @@ The working install and handoff process is documented in:
 - `docs/launch/CLIENT-DELIVERY-SOP.md`
 - `docs/launch/SAAS-OPERATING-MODEL.md`
 - `docs/launch/PRODUCTION-HOSTING-PLAN.md`
+- `docs/launch/SMARTMITRA-CONSOLIDATION-PLAN.md`
+
+## Public Website Deployment
+
+The BizClaw AI website is Railway-ready from the `website/` directory:
+
+```bash
+cd website
+npm start
+```
+
+For Railway, set the service root directory to `website/` and use the local `railway.toml`.
 
 ## Local Demo Stack
 

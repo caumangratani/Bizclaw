@@ -1,0 +1,13 @@
+{
+  "name": "bizclaw-ai-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BizClaw AI public website for Railway deployment",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

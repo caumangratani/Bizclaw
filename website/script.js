@@ -1,5 +1,5 @@
 // ============================================================
-// BizClaw Landing Page — script.js
+// BizClaw AI Landing Page — script.js
 // Bizgenix AI Solutions Pvt. Ltd.
 // ============================================================
 
@@ -306,7 +306,7 @@ function handleSubmit(event) {
   // Build WhatsApp pre-filled message
   const waText = encodeURIComponent(
     `Hi, I'm ${name} from ${business || 'my company'} (${city || 'India'}). ` +
-    `Employees: ${employees || 'N/A'}. ${message || 'I want to know about BizClaw.'}`
+    `Employees: ${employees || 'N/A'}. ${message || 'I want to know about BizClaw AI.'}`
   );
   const waURL = `https://wa.me/919999999999?text=${waText}`;
 
