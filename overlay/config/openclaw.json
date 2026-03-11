@@ -45,34 +45,34 @@
           "profile": "messaging",
           "allow": ["web_fetch", "web_search", "cron", "image"],
           "deny": ["bash", "computer"],
-          "exec": { "security": "deny" },
-          "media": {
-            "image": {
-              "enabled": true,
-              "models": [
-                { "provider": "anthropic", "model": "claude-sonnet-4-6" }
-              ]
-            },
-            "audio": {
-              "enabled": true,
-              "models": [
-                { "provider": "openai", "model": "gpt-4o-mini-transcribe" }
-              ]
-            }
-          }
+          "exec": { "security": "deny" }
         }
       }
     ]
+  },
+  "tools": {
+    "media": {
+      "concurrency": 2,
+      "image": {
+        "enabled": true,
+        "models": [
+          { "provider": "anthropic", "model": "claude-sonnet-4-6" }
+        ]
+      },
+      "audio": {
+        "enabled": true,
+        "models": [
+          { "provider": "openai", "model": "gpt-4o-mini-transcribe" }
+        ]
+      }
+    }
   },
 
   // -- Channel Bindings --
   "bindings": [
     {
       "agentId": "bizclaw-main",
-      "match": {
-        "channel": "whatsapp",
-        "peer": { "kind": "direct" }
-      }
+      "match": { "channel": "whatsapp" }
     }
   ],
 
@@ -137,22 +137,22 @@
       "mode": "token"
     },
     "controlUi": {
-      "enabled": true
+      "enabled": true,
+      "dangerouslyAllowHostHeaderOriginFallback": true
     }
   },
 
   // -- Memory (persistent per-client storage) --
   "memory": {
     "backend": "builtin",
-    "persistence": true,
-    "autoSave": true
+    "citations": "auto"
   },
 
   // -- Logging --
   "logging": {
     "level": "info",
     "consoleLevel": "info",
-    "redactSensitive": true
+    "redactSensitive": "tools"
   },
 
   // -- Cron (for scheduled tasks like weekly growth insights) --
@@ -162,7 +162,5 @@
   },
 
   // -- Messages --
-  "messages": {
-    "threading": { "enabled": true }
-  }
+  "messages": {}
 }

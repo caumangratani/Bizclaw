@@ -5,7 +5,7 @@
   "logging": {
     "level": "info",
     "consoleLevel": "info",
-    "redactSensitive": true
+    "redactSensitive": "tools"
   },
   "update": {
     "checkOnStart": false
@@ -56,36 +56,35 @@
           "profile": "messaging",
           "allow": ["web_fetch", "web_search", "cron", "image"],
           "deny": ["bash", "computer"],
-          "exec": { "security": "deny" },
-          "media": {
-            "image": {
-              "enabled": true,
-              "models": [
-                { "provider": "anthropic", "model": "claude-sonnet-4-6" }
-              ]
-            },
-            "audio": {
-              "enabled": true,
-              "models": [
-                { "provider": "openai", "model": "gpt-4o-mini-transcribe" }
-              ]
-            }
-          }
+          "exec": { "security": "deny" }
         }
       }
     ]
   },
+  "tools": {
+    "media": {
+      "concurrency": 2,
+      "image": {
+        "enabled": true,
+        "models": [
+          { "provider": "anthropic", "model": "claude-sonnet-4-6" }
+        ]
+      },
+      "audio": {
+        "enabled": true,
+        "models": [
+          { "provider": "openai", "model": "gpt-4o-mini-transcribe" }
+        ]
+      }
+    }
+  },
   "bindings": [
     {
       "agentId": "bizclaw-TEMPLATE",
-      "match": {
-        "channel": "whatsapp",
-        "peer": { "kind": "direct" }
-      }
+      "match": { "channel": "whatsapp" }
     }
   ],
   "messages": {
-    "threading": { "enabled": true },
     "ackReactionScope": "group-mentions"
   },
   "commands": {
@@ -137,7 +136,8 @@
     "bind": "lan",
     "controlUi": {
       "enabled": true,
-      "root": "./overlay/control-ui"
+      "root": "./overlay/control-ui",
+      "dangerouslyAllowHostHeaderOriginFallback": true
     },
     "auth": {
       "mode": "token",
@@ -146,8 +146,6 @@
   },
   "memory": {
     "backend": "builtin",
-    "persistence": true,
-    "autoSave": true,
     "citations": "auto"
   },
   "skills": {
