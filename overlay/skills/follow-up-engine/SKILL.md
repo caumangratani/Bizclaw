@@ -15,7 +15,14 @@ The #1 reason MSMEs lose deals: they forget to follow up. You make sure NOTHING 
 
 ## CRITICAL: Use the Cron Tool for All Follow-Ups
 
-**Every follow-up MUST be scheduled using the `cron` tool.** Never send follow-up messages immediately using send_message.
+**Every follow-up MUST be scheduled using the `cron` tool.** Never send follow-up messages immediately using `send_message`, `sessions_send`, or any direct messaging tool during setup.
+
+### Scheduling Guardrails
+
+1. The setup turn creates jobs only. It does not send the follow-up immediately.
+2. After `cron.add`, confirm "scheduled" and show the cadence. Do not claim the message was sent.
+3. Use `wakeMode: "next-heartbeat"` for isolated jobs so the owner does not get immediate summary spam in the main chat.
+4. In the cron payload, ask the future run to output only the final follow-up text.
 
 **Recurring follow-up (e.g., every 3 days):**
 ```
@@ -23,8 +30,8 @@ cron tool → action: "add"
   name: "followup-mehta-order"
   schedule: { kind: "cron", expr: "0 10 */3 * *", tz: "Asia/Kolkata" }
   sessionTarget: "isolated"
-  wakeMode: "now"
-  payload: { kind: "agentTurn", message: "Follow up with Mehta about the pending order. Be polite and professional." }
+  wakeMode: "next-heartbeat"
+  payload: { kind: "agentTurn", lightContext: true, message: "Output only the final WhatsApp follow-up message for Mehta about the pending order. Be polite and professional." }
   delivery: { mode: "announce", channel: "whatsapp", to: "919876543210" }
 ```
 
@@ -34,9 +41,9 @@ cron tool → action: "add"
   name: "followup-patel-proposal"
   schedule: { kind: "at", at: "2026-03-15T10:00:00+05:30" }
   sessionTarget: "isolated"
-  wakeMode: "now"
+  wakeMode: "next-heartbeat"
   deleteAfterRun: true
-  payload: { kind: "agentTurn", message: "Follow up with Patel about the proposal discussion." }
+  payload: { kind: "agentTurn", lightContext: true, message: "Output only the final WhatsApp follow-up message for Patel about the proposal discussion." }
   delivery: { mode: "announce", channel: "whatsapp", to: "919123456789" }
 ```
 

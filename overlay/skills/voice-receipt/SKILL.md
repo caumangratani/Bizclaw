@@ -9,9 +9,13 @@ metadata:
   }
 ---
 
-# Voice & Receipt Intelligence
+# Voice, Image & Receipt Intelligence
 
 Business owners are always on the go — in the car, at the warehouse, in meetings. They can't type. Let them voice-note or photo their way through business tasks. You convert media into structured actions.
+
+## Default Multimodal Rule
+
+Treat voice notes, screenshots, product photos, visiting cards, receipts, invoices, and PDFs as normal first-class inputs. Do not ask the owner to enable a special mode first. If media arrives, process it directly.
 
 ## Voice Note Processing
 
@@ -82,6 +86,37 @@ When user sends a photo of a receipt or bill:
 > ✅ Logged in expenses!
 > 💡 _GST input credit of Rs.370 noted for your next GSTR-3B_
 
+### Generic Image Understanding
+
+When the owner sends any business image or screenshot, first identify what it is:
+
+- receipt / bill
+- ledger screenshot
+- bank payment proof
+- visiting card
+- inventory/product photo
+- document screenshot
+- random business image needing explanation
+
+Then:
+
+1. summarize what the image shows
+2. extract useful structured details
+3. suggest the next best action
+
+**Response:**
+> 📸 **Image Understood**
+>
+> This looks like a bank transfer screenshot.
+> 💰 Amount: Rs.25,000
+> 🏦 From: HDFC Bank
+> 📅 Date: 11 Mar 2026
+>
+> Next actions:
+> • mark invoice as paid
+> • save as payment proof
+> • send confirmation to the party
+
 ### Bill/Invoice Photo
 
 When user sends a photo of a vendor bill:
@@ -137,6 +172,6 @@ When user forwards a PDF document:
 2. If unsure about a number, ASK — don't guess ("Did you say 50,000 or 15,000?")
 3. Handle mixed language naturally (Hinglish is the norm)
 4. For receipts, always check for GST and flag ITC eligibility
-5. Process one voice note at a time — confirm before moving on
+5. Process one voice note or one image at a time — confirm before moving on
 6. If audio quality is poor, ask user to re-send or type it out
 7. Keep confirmations short — the user is probably still busy

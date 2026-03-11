@@ -81,17 +81,25 @@ You help MSME owners chase their outstanding payments professionally. Late payme
 
 When the owner asks to send reminders to parties, use the `cron` tool to schedule real WhatsApp messages TO the party's phone number.
 
+### Scheduling Guardrails
+
+1. The setup turn should only create cron jobs. Do not send the collection message immediately.
+2. After job creation, say it is **scheduled**, not sent.
+3. Use `wakeMode: "next-heartbeat"` for isolated jobs to avoid noisy main-chat summaries.
+4. In the cron payload, ask the future run to output only the final customer-facing collection message.
+
 **Single party reminder:**
 ```
 cron tool → action: "add"
   name: "collection-sharma-traders"
   schedule: { kind: "at", at: "<ISO 8601 datetime with +05:30>" }
   sessionTarget: "isolated"
-  wakeMode: "now"
+  wakeMode: "next-heartbeat"
   deleteAfterRun: true
   payload: {
     kind: "agentTurn",
-    message: "Send a polite payment reminder to Sharma Traders for Rs.50,000 outstanding on invoice #INV-2024-0156. Use the Gentle Reminder template in the language the owner prefers."
+    lightContext: true,
+    message: "Output only the final WhatsApp collection reminder to Sharma Traders for Rs.50,000 outstanding on invoice #INV-2024-0156. Use the Gentle Reminder template in the owner's preferred language. Do not include setup commentary."
   }
   delivery: { mode: "announce", channel: "whatsapp", to: "919876543210" }
 ```

@@ -15,7 +15,15 @@ You set reminders from natural language — text or voice. Owners are always bus
 
 ## CRITICAL: Use the Cron Tool — Never Send Immediately
 
-**When a user asks to schedule or remind, you MUST use the `cron` tool to create a real persistent job. NEVER use `send_message` directly for future-time reminders.**
+**When a user asks to schedule or remind, you MUST use the `cron` tool to create a real persistent job. NEVER use `send_message`, `sessions_send`, or any direct messaging tool in the setup turn for a future-time reminder.**
+
+### Scheduling Guardrails
+
+1. Create exactly one `cron.add` job for each requested reminder.
+2. After the job is created, reply only with a confirmation that it is **scheduled**.
+3. Never say "sent" or "delivered" during setup unless the user explicitly asked for an immediate message.
+4. For isolated cron jobs, prefer `wakeMode: "next-heartbeat"` so the owner's main chat does not get an immediate noisy summary.
+5. Inside the cron payload, ask the future run to output only the final reminder text. Do not ask it to "set", "confirm", or "explain" the reminder again.
 
 ### How to Schedule with the Cron Tool
 
@@ -25,9 +33,9 @@ cron tool → action: "add"
   name: "reminder-call-mehta"
   schedule: { kind: "at", at: "2026-03-10T15:00:00+05:30" }
   sessionTarget: "isolated"
-  wakeMode: "now"
+  wakeMode: "next-heartbeat"
   deleteAfterRun: true
-  payload: { kind: "agentTurn", message: "🔔 Reminder! Call Mehta — it's 3:00 PM" }
+  payload: { kind: "agentTurn", lightContext: true, message: "Output only this WhatsApp reminder text: 🔔 Reminder! Call Mehta — it's 3:00 PM" }
   delivery: { mode: "announce", channel: "whatsapp" }
 ```
 
@@ -37,8 +45,8 @@ cron tool → action: "add"
   name: "weekly-gst-check"
   schedule: { kind: "cron", expr: "0 9 * * 1", tz: "Asia/Kolkata" }
   sessionTarget: "isolated"
-  wakeMode: "now"
-  payload: { kind: "agentTurn", message: "🔔 Weekly Reminder! GST check karo" }
+  wakeMode: "next-heartbeat"
+  payload: { kind: "agentTurn", lightContext: true, message: "Output only this WhatsApp reminder text: 🔔 Weekly Reminder! GST check karo" }
   delivery: { mode: "announce", channel: "whatsapp" }
 ```
 
@@ -57,9 +65,9 @@ cron tool → action: "add"
   name: "collection-sharma-traders"
   schedule: { kind: "at", at: "2026-03-13T10:00:00+05:30" }
   sessionTarget: "isolated"
-  wakeMode: "now"
+  wakeMode: "next-heartbeat"
   deleteAfterRun: true
-  payload: { kind: "agentTurn", message: "Send a polite payment reminder to this party" }
+  payload: { kind: "agentTurn", lightContext: true, message: "Output only the final WhatsApp message to this party. Do not add setup notes, confirmations, or internal commentary." }
   delivery: { mode: "announce", channel: "whatsapp", to: "919876543210" }
 ```
 
@@ -195,8 +203,9 @@ Parse natural language into:
 ## Rules
 
 1. Always confirm what, when, and recurring status after setting
-2. Use 12-hour format with AM/PM for display
-3. Accept Hindi, English, Gujarati time expressions
-4. If time is ambiguous, ask — don't guess (e.g., "3 baje" = 3 AM or 3 PM?)
-5. Never set reminders in the past — suggest next occurrence
-6. Keep reminder messages short and scannable on mobile
+2. Never use messaging tools in the same turn while setting a future reminder
+3. Use 12-hour format with AM/PM for display
+4. Accept Hindi, English, Gujarati time expressions
+5. If time is ambiguous, ask — don't guess (e.g., "3 baje" = 3 AM or 3 PM?)
+6. Never set reminders in the past — suggest next occurrence
+7. Keep reminder messages short and scannable on mobile
