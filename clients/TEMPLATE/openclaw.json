@@ -54,9 +54,23 @@
         },
         "tools": {
           "profile": "messaging",
-          "allow": ["web_fetch", "web_search", "cron"],
+          "allow": ["web_fetch", "web_search", "cron", "image"],
           "deny": ["bash", "computer"],
-          "exec": { "security": "deny" }
+          "exec": { "security": "deny" },
+          "media": {
+            "image": {
+              "enabled": true,
+              "models": [
+                { "provider": "anthropic", "model": "claude-sonnet-4-6" }
+              ]
+            },
+            "audio": {
+              "enabled": true,
+              "models": [
+                { "provider": "openai", "model": "gpt-4o-mini-transcribe" }
+              ]
+            }
+          }
         }
       }
     ]
@@ -96,10 +110,11 @@
   "web": { "enabled": true },
   "channels": {
     "whatsapp": {
-      "dmPolicy": "allowlist",
+      "dmPolicy": "pairing",
       "allowFrom": [],
       "selfChatMode": true,
       "groupPolicy": "disabled",
+      "configWrites": true,
       "sendReadReceipts": true,
       "textChunkLimit": 4000,
       "chunkMode": "length",
@@ -107,8 +122,8 @@
       "debounceMs": 500,
       "ackReaction": {
         "emoji": "⚡",
-        "direct": true,
-        "group": "mentions"
+        "direct": false,
+        "group": "never"
       },
       "actions": {
         "reactions": true,
