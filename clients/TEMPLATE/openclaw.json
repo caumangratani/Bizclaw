@@ -110,8 +110,8 @@
   "web": { "enabled": true },
   "channels": {
     "whatsapp": {
-      "dmPolicy": "pairing",
-      "allowFrom": [],
+      "dmPolicy": "allowlist",
+      "allowFrom": ["OWNER_PHONE"],
       "selfChatMode": true,
       "groupPolicy": "disabled",
       "configWrites": true,

@@ -51,6 +51,8 @@ cron tool → action: "add"
 
 **To stop a follow-up:** `cron tool → action: "remove", id: "<job-id>"`
 
+If the follow-up should message a third-party phone number, only schedule it after the owner has explicitly enabled that chat via allowlist/chat control.
+
 ## Setting Follow-Ups
 
 ### Input Examples

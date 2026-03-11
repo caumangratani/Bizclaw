@@ -80,8 +80,8 @@
   "web": { "enabled": true },
   "channels": {
     "whatsapp": {
-      "dmPolicy": "pairing",
-      "allowFrom": [],
+      "dmPolicy": "allowlist",
+      "allowFrom": ["918200858674"],
       "groupPolicy": "disabled",
       "configWrites": true,
       "sendReadReceipts": true,

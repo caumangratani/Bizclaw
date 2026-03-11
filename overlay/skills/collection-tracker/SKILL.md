@@ -125,6 +125,7 @@ If the owner wants escalating reminders:
 Create all 3 jobs upfront for each party with different schedule dates.
 
 **NEVER send collection messages immediately. Always schedule via cron. Always confirm the list and timing with the owner before creating jobs.**
+Only schedule delivery to party phone numbers that the owner has explicitly enabled for BizClaw. If not enabled yet, tell the owner to add them first with `/allowlist add dm <number>`.
 
 ## How to Help the Business Owner
 

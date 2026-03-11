@@ -26,6 +26,18 @@ CLIENT_NAME="${2:-$CLIENT_ID}"
 CLIENT_BUSINESS="${3:-General Business}"
 CLIENT_PHONE="${4:-}"
 
+if [ -z "$CLIENT_PHONE" ]; then
+  echo "Error: owner WhatsApp phone is required for production-safe access control."
+  echo "Usage: ./scripts/new-client.sh <client-id> [\"Client Name\"] [\"Business Type\"] [\"+phone\"]"
+  exit 1
+fi
+
+OWNER_PHONE_NORMALIZED=$(printf "%s" "$CLIENT_PHONE" | tr -cd '0-9')
+if [ -z "$OWNER_PHONE_NORMALIZED" ]; then
+  echo "Error: could not normalize owner phone number from '$CLIENT_PHONE'"
+  exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 CLIENTS_DIR="$ROOT_DIR/clients"
@@ -72,6 +84,7 @@ CLIENT_ID="$CLIENT_ID" \
 CLIENT_NAME="$CLIENT_NAME" \
 CLIENT_BUSINESS="$CLIENT_BUSINESS" \
 CLIENT_PHONE="$CLIENT_PHONE" \
+OWNER_PHONE_NORMALIZED="$OWNER_PHONE_NORMALIZED" \
 DATE="$DATE" \
 node <<'NODE'
 const fs = require("fs");
@@ -93,7 +106,9 @@ const jobs = [
   {
     file: "openclaw.json",
     update(raw) {
-      return raw.replaceAll("TEMPLATE", process.env.CLIENT_ID);
+      return raw
+        .replaceAll("TEMPLATE", process.env.CLIENT_ID)
+        .replaceAll("OWNER_PHONE", process.env.OWNER_PHONE_NORMALIZED);
     }
   },
   {
