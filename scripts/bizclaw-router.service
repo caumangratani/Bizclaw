@@ -1,0 +1,20 @@
+[Unit]
+Description=BizClaw Multi-Tenant Router
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/bizclaw
+ExecStart=/usr/bin/node /opt/bizclaw/scripts/router.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=bizclaw-router
+Environment=NODE_ENV=production
+Environment=ROUTER_PORT=18800
+Environment=CLIENTS_DIR=/opt/bizclaw/clients
+
+[Install]
+WantedBy=multi-user.target
