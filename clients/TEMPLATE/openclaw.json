@@ -137,7 +137,10 @@
     "controlUi": {
       "enabled": true,
       "root": "./overlay/control-ui",
-      "dangerouslyAllowHostHeaderOriginFallback": true
+      "dangerouslyAllowHostHeaderOriginFallback": true,
+      "allowedOrigins": [
+        "https://claw.bizgenix.ai"
+      ]
     },
     "auth": {
       "mode": "token",
