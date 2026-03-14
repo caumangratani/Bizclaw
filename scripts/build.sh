@@ -37,8 +37,13 @@ if command -v pnpm &> /dev/null; then
   pnpm install --frozen-lockfile
   echo "Building OpenClaw..."
   pnpm build
+elif command -v npm &> /dev/null; then
+  echo "pnpm not found, using npm..."
+  npm install
+  echo "Building OpenClaw..."
+  npm run build
 else
-  echo "Error: pnpm is required. Install with: npm install -g pnpm"
+  echo "Error: Node.js package manager required. Install pnpm or npm."
   exit 1
 fi
 
