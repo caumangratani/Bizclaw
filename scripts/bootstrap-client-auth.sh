@@ -52,18 +52,12 @@ const roots = [
 
 const out = [];
 for (const root of roots) {
-  if (!fs.existsSync(root)) continue;
   out.push(path.join(root, agentId, "agent", "auth-profiles.json"));
   out.push(path.join(root, "main", "agent", "auth-profiles.json"));
 }
 process.stdout.write(out.join("\n"));
 EOF
 )"
-
-if [ -z "$AUTH_PATHS" ]; then
-  echo "Auth bootstrap skipped: no agent directories found"
-  exit 0
-fi
 
 while IFS= read -r auth_path || [ -n "$auth_path" ]; do
   [ -z "$auth_path" ] && continue

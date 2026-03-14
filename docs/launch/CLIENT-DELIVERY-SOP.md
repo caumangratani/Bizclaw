@@ -120,18 +120,35 @@ Docker path:
 ./scripts/client-launch-url.sh <client-id> https://client.example.com
 ```
 
-VPS path:
+Current production VPS path:
+
+1. One-time server setup:
 
 ```bash
-sudo ./scripts/install-vps.sh
+sudo ./scripts/setup-vps.sh
+```
+
+2. Add each client on the VPS:
+
+```bash
+sudo ./scripts/add-client-vps.sh <client-id> "<Client Name>" "<Business Type>" "<+phone>" "<ANTHROPIC_API_KEY>"
+```
+
+3. Open the tokenized URL printed by the script.
+
+If you are using the shared BizClaw router domain, generate the live URLs with:
+
+```bash
+./scripts/client-launch-url.sh <client-id> https://claw.bizgenix.ai
 ```
 
 Then:
 
-- place the correct `.env` on the server
-- start `bizclaw`
-- open the tokenized URL
+- keep one port per client
+- keep one systemd service per client: `bizclaw-client@<client-id>`
+- open the tokenized dashboard URL
 - connect WhatsApp once and keep the Channels page open until the login cycle completes
+- verify the service through `./scripts/client-readiness.sh <client-id>`
 
 ## 8. WhatsApp production note
 

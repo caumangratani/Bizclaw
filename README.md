@@ -88,6 +88,21 @@ BizClaw is an autonomous AI business agent that helps Indian MSMEs automate oper
 ./scripts/client-launch-url.sh acme-textiles
 ```
 
+## VPS Launch Path
+
+For the current production VPS flow:
+
+```bash
+# One-time server setup
+sudo ./scripts/setup-vps.sh
+
+# Per-client rollout on the VPS
+sudo ./scripts/add-client-vps.sh acme-textiles "Acme Textiles" "Textiles" "+919876543210" "sk-ant-..."
+
+# Shared router URL
+./scripts/client-launch-url.sh acme-textiles https://claw.bizgenix.ai
+```
+
 ## Delivery Runbook
 
 The working install and handoff process is documented in:

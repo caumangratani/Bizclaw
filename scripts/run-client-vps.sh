@@ -83,6 +83,48 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
+# Ask the OpenClaw CLI to stop any prior supervised gateway for this client
+# before we start a fresh instance under systemd.
+env \
+  OPENCLAW_CONFIG_PATH="$CLIENT_DIR/data/openclaw.json" \
+  OPENCLAW_STATE_DIR="$CLIENT_DIR/data" \
+  OPENCLAW_WORKSPACE_DIR="$CLIENT_DIR/data/workspace" \
+  OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
+  OPENCLAW_GATEWAY_PORT="$PORT" \
+  openclaw gateway stop >/dev/null 2>&1 || true
+sleep 1
+
+# Clear any stale gateway process that still owns this client's port.
+EXISTING_PID="$(
+  PORT="$PORT" node <<'EOF'
+const { execSync } = require("child_process");
+const port = String(process.env.PORT || "").trim();
+if (!port) process.exit(0);
+try {
+  const output = execSync("ss -ltnp", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  for (const line of output.split(/\r?\n/)) {
+    if (!line.includes(`:${port}`)) continue;
+    const match = line.match(/pid=(\d+)/);
+    if (match) {
+      process.stdout.write(match[1]);
+      break;
+    }
+  }
+} catch {
+  // Ignore and continue without a stale-port cleanup.
+}
+EOF
+)"
+
+if [ -n "$EXISTING_PID" ]; then
+  CURRENT_PID="$$"
+  if [ "$EXISTING_PID" != "$CURRENT_PID" ]; then
+    echo "Stopping stale gateway process on port $PORT (pid=$EXISTING_PID)..."
+    kill "$EXISTING_PID" 2>/dev/null || true
+    sleep 1
+  fi
+fi
+
 echo "BizClaw client '$CLIENT_ID': http://0.0.0.0:${PORT}?token=${TOKEN}"
 
 # Run using globally installed openclaw (has compiled WhatsApp/Telegram)
