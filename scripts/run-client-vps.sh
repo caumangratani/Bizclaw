@@ -63,6 +63,13 @@ node -e '
   config.gateway.port = port;
   config.gateway.controlUi = config.gateway.controlUi || {};
   config.gateway.controlUi.root = uiRoot;
+  if (config.channels && config.channels.whatsapp && config.channels.whatsapp.accounts) {
+    for (const [accountId, account] of Object.entries(config.channels.whatsapp.accounts)) {
+      if (account && typeof account.authDir === "string") {
+        account.authDir = `./credentials/whatsapp/${accountId}`;
+      }
+    }
+  }
   config.skills = config.skills || {};
   config.skills.load = config.skills.load || {};
   config.skills.load.extraDirs = [process.argv[4]];

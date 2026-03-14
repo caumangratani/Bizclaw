@@ -59,6 +59,13 @@ node -e '
   const config = JSON.parse(fs.readFileSync(file, "utf8"));
   config.gateway = config.gateway || {};
   config.gateway.port = port;
+  if (config.channels && config.channels.whatsapp && config.channels.whatsapp.accounts) {
+    for (const [accountId, account] of Object.entries(config.channels.whatsapp.accounts)) {
+      if (account && typeof account.authDir === "string") {
+        account.authDir = `./credentials/whatsapp/${accountId}`;
+      }
+    }
+  }
   fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
 ' "$CLIENT_DIR/data/openclaw.json" "$PORT"
 

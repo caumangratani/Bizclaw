@@ -25,9 +25,43 @@ fi
 
 mkdir -p "$BACKUP_DIR"
 
+resolve_auth_dir() {
+  local config_file=""
+  if [ -f "$DATA_DIR/openclaw.json" ]; then
+    config_file="$DATA_DIR/openclaw.json"
+  elif [ -f "$CLIENT_DIR/openclaw.json" ]; then
+    config_file="$CLIENT_DIR/openclaw.json"
+  fi
+
+  if [ -n "$config_file" ]; then
+    node - "$config_file" "$ACCOUNT_ID" <<'EOF'
+const fs = require("fs");
+const path = require("path");
+const configFile = process.argv[2];
+const accountId = process.argv[3] || "default";
+const cfg = JSON.parse(fs.readFileSync(configFile, "utf8"));
+const account = cfg?.channels?.whatsapp?.accounts?.[accountId];
+let authDir = typeof account?.authDir === "string" ? account.authDir.trim() : "";
+if (!authDir) process.exit(0);
+const configDir = path.dirname(configFile);
+if (path.basename(configDir) === "data" && authDir.startsWith("./data/")) {
+  authDir = "." + authDir.slice("./data".length);
+}
+const base = configDir;
+const resolved = path.resolve(base, authDir);
+process.stdout.write(resolved);
+EOF
+  fi
+}
+
+CONFIGURED_AUTH_DIR="$(resolve_auth_dir || true)"
+if [ -n "$CONFIGURED_AUTH_DIR" ]; then
+  CREDS_DIR="$CONFIGURED_AUTH_DIR"
+fi
+
 if [ -d "$CREDS_DIR" ]; then
-  mkdir -p "$BACKUP_DIR/credentials/whatsapp"
-  cp -R "$CREDS_DIR" "$BACKUP_DIR/credentials/whatsapp/$ACCOUNT_ID"
+  mkdir -p "$(dirname "$BACKUP_DIR/configured-auth/$ACCOUNT_ID")"
+  cp -R "$CREDS_DIR" "$BACKUP_DIR/configured-auth/$ACCOUNT_ID"
   rm -rf "$CREDS_DIR"
   echo "Cleared WhatsApp credentials: $CREDS_DIR"
 else

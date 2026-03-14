@@ -80,6 +80,11 @@
   "web": { "enabled": true },
   "channels": {
     "whatsapp": {
+      "accounts": {
+        "default": {
+          "authDir": "./data/credentials/whatsapp/default"
+        }
+      },
       "dmPolicy": "allowlist",
       "allowFrom": ["918200858674"],
       "groupPolicy": "disabled",
