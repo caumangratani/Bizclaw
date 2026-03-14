@@ -134,8 +134,9 @@ cp "$CLIENT_DIR/AGENTS.md" "$CLIENT_DIR/data/workspace/AGENTS.md"
 cp "$CLIENT_DIR/openclaw.json" "$CLIENT_DIR/data/openclaw.json"
 
 # Determine port (base 18789 + number of existing clients)
+# The new client was just created, so count includes it — subtract 1 for TEMPLATE, not for self
 EXISTING_CLIENTS=$(ls -d "$CLIENTS_DIR"/*/ 2>/dev/null | grep -v TEMPLATE | wc -l | tr -d ' ')
-CLIENT_PORT=$((18789 + EXISTING_CLIENTS - 1))
+CLIENT_PORT=$((18788 + EXISTING_CLIENTS))
 
 # Generate per-client .env file
 cat > "$CLIENT_DIR/.env" <<EOF

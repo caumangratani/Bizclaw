@@ -46,10 +46,17 @@ bash "$SCRIPT_DIR/new-client.sh" "$CLIENT_ID" "$CLIENT_NAME" "$CLIENT_BUSINESS" 
 
 CLIENT_DIR="$ROOT_DIR/clients/$CLIENT_ID"
 
-# Step 2: Inject API key
+# Step 2: Inject API key (using node to avoid sed special char issues)
 echo "[2/4] Setting up API keys..."
 if [ -n "$ANTHROPIC_KEY" ]; then
-  sed -i "s|^ANTHROPIC_API_KEY=.*|ANTHROPIC_API_KEY=$ANTHROPIC_KEY|" "$CLIENT_DIR/.env"
+  node -e '
+    const fs = require("fs");
+    const file = process.argv[1];
+    const key = process.argv[2];
+    let content = fs.readFileSync(file, "utf8");
+    content = content.replace(/^ANTHROPIC_API_KEY=.*/m, "ANTHROPIC_API_KEY=" + key);
+    fs.writeFileSync(file, content);
+  ' "$CLIENT_DIR/.env" "$ANTHROPIC_KEY"
   echo "  Anthropic API key set"
 else
   echo "  WARNING: No Anthropic API key provided. Add it later:"
@@ -71,6 +78,16 @@ chown -R bizclaw:bizclaw "$CLIENT_DIR" 2>/dev/null || true
 
 # Step 4: Start service
 echo "[4/4] Starting BizClaw service..."
+if [ ! -f /etc/systemd/system/bizclaw-client@.service ]; then
+  echo "  ERROR: systemd service template not found."
+  echo "  Run setup-vps.sh first, or create it manually:"
+  echo "    sudo cp $ROOT_DIR/scripts/bizclaw-client@.service /etc/systemd/system/"
+  echo ""
+  echo "  Client files are ready at: $CLIENT_DIR"
+  echo "  You can start manually with:"
+  echo "    bash $ROOT_DIR/scripts/run-client-vps.sh $CLIENT_ID"
+  exit 1
+fi
 systemctl daemon-reload
 systemctl enable "bizclaw-client@$CLIENT_ID" 2>/dev/null || true
 systemctl start "bizclaw-client@$CLIENT_ID"
