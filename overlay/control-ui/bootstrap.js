@@ -13,8 +13,22 @@
 
   // ---- Gateway auth bootstrap (same as OpenClaw's built-in) ----
   var STORAGE_KEY = "openclaw.control.settings.v1";
+  var ROUTE_COOKIE = "__bc_route";
   var params = new URLSearchParams(window.location.search);
   var urlChanged = false;
+
+  function getCookie(name) {
+    try {
+      var cookies = document.cookie ? document.cookie.split(";") : [];
+      for (var i = 0; i < cookies.length; i++) {
+        var parts = cookies[i].trim().split("=");
+        if (parts[0] === name) {
+          return decodeURIComponent(parts.slice(1).join("="));
+        }
+      }
+    } catch (_) {}
+    return "";
+  }
 
   function loadSettings() {
     try {
@@ -29,9 +43,79 @@
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
   }
 
+  function installSettingsGuard(locked) {
+    if (window.__bcSettingsGuardInstalled) return;
+    window.__bcSettingsGuardInstalled = true;
+
+    var originalSetItem = window.localStorage.setItem.bind(window.localStorage);
+    window.localStorage.setItem = function (key, value) {
+      if (key === STORAGE_KEY && typeof value === "string") {
+        try {
+          var parsed = JSON.parse(value);
+          if (locked.token && !parsed.token) parsed.token = locked.token;
+          if (locked.gatewayUrl && !parsed.gatewayUrl) parsed.gatewayUrl = locked.gatewayUrl;
+          if (locked.sessionKey && !parsed.sessionKey) parsed.sessionKey = locked.sessionKey;
+          if (locked.lastActiveSessionKey && !parsed.lastActiveSessionKey) parsed.lastActiveSessionKey = locked.lastActiveSessionKey;
+          value = JSON.stringify(parsed);
+        } catch (_) {}
+      }
+      return originalSetItem(key, value);
+    };
+  }
+
+  function setInputValue(input, value) {
+    if (!input || typeof value !== "string") return;
+    var prototype = window.HTMLInputElement && window.HTMLInputElement.prototype;
+    var descriptor = prototype ? Object.getOwnPropertyDescriptor(prototype, "value") : null;
+    if (descriptor && descriptor.set) descriptor.set.call(input, value);
+    else input.value = value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function hydrateManualConnect(root) {
+    var locked = window.__bcLockedSettings || {};
+    if (!root || !root.querySelectorAll || !locked.token) return;
+
+    var tokenInput = null;
+    var gatewayInput = null;
+    var connectButton = null;
+    var inputs = root.querySelectorAll("input");
+    for (var i = 0; i < inputs.length; i++) {
+      var input = inputs[i];
+      var placeholder = (input.getAttribute("placeholder") || "").toLowerCase();
+      var aria = (input.getAttribute("aria-label") || "").toLowerCase();
+      if (!tokenInput && (placeholder.indexOf("gateway_token") !== -1 || aria.indexOf("gateway token") !== -1)) {
+        tokenInput = input;
+      }
+      if (!gatewayInput && ((placeholder.indexOf("ws://") === 0 || placeholder.indexOf("wss://") === 0) || aria.indexOf("websocket url") !== -1)) {
+        gatewayInput = input;
+      }
+    }
+
+    var buttons = root.querySelectorAll("button");
+    for (var b = 0; b < buttons.length; b++) {
+      if ((buttons[b].textContent || "").trim().toLowerCase() === "connect") {
+        connectButton = buttons[b];
+        break;
+      }
+    }
+
+    if (!tokenInput || !connectButton) return;
+    if (!tokenInput.value) setInputValue(tokenInput, locked.token);
+    if (gatewayInput && !gatewayInput.value && locked.gatewayUrl) setInputValue(gatewayInput, locked.gatewayUrl);
+
+    if (!root.__bcAutoConnectTried && tokenInput.value) {
+      root.__bcAutoConnectTried = true;
+      setTimeout(function () {
+        if (!connectButton.disabled) connectButton.click();
+      }, 50);
+    }
+  }
+
   function bootstrapAuth() {
     var s = loadSettings();
-    var token = params.get("token");
+    var token = params.get("token") || getCookie(ROUTE_COOKIE);
     var gatewayUrl = params.get("gatewayUrl");
     var sessionKey = params.get("session");
 
@@ -54,6 +138,13 @@
     s.theme = s.theme || "dark";
     s.chatShowThinking = s.chatShowThinking !== false;
     saveSettings(s);
+    window.__bcLockedSettings = {
+      token: s.token || "",
+      gatewayUrl: s.gatewayUrl || "",
+      sessionKey: s.sessionKey || "main",
+      lastActiveSessionKey: s.lastActiveSessionKey || s.sessionKey || "main"
+    };
+    installSettingsGuard(window.__bcLockedSettings);
   }
 
   // ---- Branding patcher (catches dynamic/shadow-DOM content) ----
@@ -110,6 +201,7 @@
   function setupWhatsAppAutoWait(root) {
     if (!root || root.__bcAutoWait) return;
     root.__bcAutoWait = true;
+    hydrateManualConnect(root);
 
     root.addEventListener("click", function (e) {
       var btn = e.target && e.target.closest ? e.target.closest("button") : null;
@@ -143,6 +235,7 @@
     // Initial full patch
     patchNode(root);
     setupWhatsAppAutoWait(root);
+    hydrateManualConnect(root);
 
     var observer = new MutationObserver(function (mutations) {
       for (var m = 0; m < mutations.length; m++) {
@@ -155,6 +248,7 @@
             for (var c = 0; c < children.length; c++) {
               patchSingle(children[c]);
             }
+            hydrateManualConnect(node);
           }
           // Watch shadow roots
           if (node.shadowRoot && !node.shadowRoot.__bcObserver) {

@@ -138,6 +138,7 @@
     },
     "controlUi": {
       "enabled": true,
+      "dangerouslyDisableDeviceAuth": true,
       "dangerouslyAllowHostHeaderOriginFallback": true
     }
   },
