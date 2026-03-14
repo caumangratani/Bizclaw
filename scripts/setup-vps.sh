@@ -100,11 +100,15 @@ git submodule update --init --recursive
 echo "  OpenClaw submodule ready"
 
 # ================================================================
-# Step 5: Build BizClaw
+# Step 5: Build BizClaw (patch control-ui for white-label)
 # ================================================================
 echo "[5/7] Building BizClaw..."
 bash scripts/build.sh
 echo "  Build complete"
+
+# Patch control-ui with BizClaw branding
+echo "  Patching control-ui branding..."
+bash scripts/patch-control-ui.sh 2>/dev/null || echo "  Warning: control-ui patch skipped (will use bootstrap.js fallback)"
 
 # ================================================================
 # Step 6: Create bizclaw user + systemd services

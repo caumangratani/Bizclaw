@@ -52,16 +52,28 @@ cp "$CLIENT_DIR/openclaw.json" "$CLIENT_DIR/data/openclaw.json"
 cp "$CLIENT_DIR/soul.md" "$CLIENT_DIR/data/workspace/SOUL.md"
 cp "$CLIENT_DIR/AGENTS.md" "$CLIENT_DIR/data/workspace/AGENTS.md"
 
-# Patch port into runtime config
+# Patch port and controlUi.root into runtime config
 node -e '
   const fs = require("fs");
   const file = process.argv[1];
   const port = Number(process.argv[2]);
+  const uiRoot = process.argv[3];
   const config = JSON.parse(fs.readFileSync(file, "utf8"));
   config.gateway = config.gateway || {};
   config.gateway.port = port;
+  config.gateway.controlUi = config.gateway.controlUi || {};
+  config.gateway.controlUi.root = uiRoot;
+  config.skills = config.skills || {};
+  config.skills.load = config.skills.load || {};
+  config.skills.load.extraDirs = [process.argv[4]];
+  config.plugins = config.plugins || {};
+  config.plugins.load = config.plugins.load || {};
+  config.plugins.load.paths = [process.argv[5]];
   fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
-' "$CLIENT_DIR/data/openclaw.json" "$PORT"
+' "$CLIENT_DIR/data/openclaw.json" "$PORT" \
+  "$ROOT_DIR/overlay/control-ui" \
+  "$ROOT_DIR/overlay/skills" \
+  "$ROOT_DIR/overlay/bizclaw"
 
 # Bootstrap auth profiles from env API keys
 "$SCRIPT_DIR/bootstrap-client-auth.sh" "$CLIENT_ID"
