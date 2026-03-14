@@ -60,11 +60,15 @@ fi
 echo "  Node.js $(node -v) ready"
 
 # ================================================================
-# Step 2: Install pnpm
+# Step 2: Install OpenClaw globally (compiled release with WhatsApp/Telegram)
 # ================================================================
-echo "[2/7] Installing pnpm..."
+echo "[2/7] Installing OpenClaw runtime..."
+npm install -g openclaw 2>/dev/null || true
+OPENCLAW_VERSION=$(openclaw --version 2>/dev/null || echo "unknown")
+echo "  OpenClaw $OPENCLAW_VERSION installed"
+
+# Also install pnpm in case build from source is needed later
 npm install -g pnpm 2>/dev/null || true
-echo "  pnpm $(pnpm -v 2>/dev/null || echo 'installed') ready"
 
 # ================================================================
 # Step 3: Clone or update BizClaw
@@ -147,6 +151,7 @@ WantedBy=multi-user.target
 EOF
 
 # Create template systemd service for per-client instances
+# Uses globally installed openclaw (npm -g) with per-client config
 cat > /etc/systemd/system/bizclaw-client@.service <<'EOF'
 [Unit]
 Description=BizClaw Client %i
@@ -155,8 +160,8 @@ After=network.target
 [Service]
 Type=simple
 User=bizclaw
-WorkingDirectory=/opt/bizclaw/build
-ExecStart=/bin/bash /opt/bizclaw/scripts/run-client-local.sh %i
+WorkingDirectory=/opt/bizclaw
+ExecStart=/bin/bash /opt/bizclaw/scripts/run-client-vps.sh %i
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
