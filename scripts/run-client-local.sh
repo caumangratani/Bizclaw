@@ -54,20 +54,22 @@ cp "$CLIENT_DIR/AGENTS.md" "$CLIENT_DIR/data/workspace/AGENTS.md"
 
 node -e '
   const fs = require("fs");
+  const path = require("path");
   const file = process.argv[1];
   const port = Number(process.argv[2]);
+  const dataDir = process.argv[3];
   const config = JSON.parse(fs.readFileSync(file, "utf8"));
   config.gateway = config.gateway || {};
   config.gateway.port = port;
   if (config.channels && config.channels.whatsapp && config.channels.whatsapp.accounts) {
     for (const [accountId, account] of Object.entries(config.channels.whatsapp.accounts)) {
       if (account && typeof account.authDir === "string") {
-        account.authDir = `./credentials/whatsapp/${accountId}`;
+        account.authDir = path.join(dataDir, "credentials", "whatsapp", accountId);
       }
     }
   }
   fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
-' "$CLIENT_DIR/data/openclaw.json" "$PORT"
+' "$CLIENT_DIR/data/openclaw.json" "$PORT" "$CLIENT_DIR/data"
 
 "$SCRIPT_DIR/bootstrap-client-auth.sh" "$CLIENT_ID"
 

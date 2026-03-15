@@ -55,9 +55,13 @@ cp "$CLIENT_DIR/AGENTS.md" "$CLIENT_DIR/data/workspace/AGENTS.md"
 # Patch port and controlUi.root into runtime config
 node -e '
   const fs = require("fs");
+  const path = require("path");
   const file = process.argv[1];
   const port = Number(process.argv[2]);
   const uiRoot = process.argv[3];
+  const skillsDir = process.argv[4];
+  const pluginPath = process.argv[5];
+  const dataDir = process.argv[6];
   const config = JSON.parse(fs.readFileSync(file, "utf8"));
   config.gateway = config.gateway || {};
   config.gateway.port = port;
@@ -66,21 +70,22 @@ node -e '
   if (config.channels && config.channels.whatsapp && config.channels.whatsapp.accounts) {
     for (const [accountId, account] of Object.entries(config.channels.whatsapp.accounts)) {
       if (account && typeof account.authDir === "string") {
-        account.authDir = `./credentials/whatsapp/${accountId}`;
+        account.authDir = path.join(dataDir, "credentials", "whatsapp", accountId);
       }
     }
   }
   config.skills = config.skills || {};
   config.skills.load = config.skills.load || {};
-  config.skills.load.extraDirs = [process.argv[4]];
+  config.skills.load.extraDirs = [skillsDir];
   config.plugins = config.plugins || {};
   config.plugins.load = config.plugins.load || {};
-  config.plugins.load.paths = [process.argv[5]];
+  config.plugins.load.paths = [pluginPath];
   fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
 ' "$CLIENT_DIR/data/openclaw.json" "$PORT" \
   "$ROOT_DIR/overlay/control-ui" \
   "$ROOT_DIR/overlay/skills" \
-  "$ROOT_DIR/overlay/bizclaw"
+  "$ROOT_DIR/overlay/bizclaw" \
+  "$CLIENT_DIR/data"
 
 # Bootstrap auth profiles from env API keys
 "$SCRIPT_DIR/bootstrap-client-auth.sh" "$CLIENT_ID"
