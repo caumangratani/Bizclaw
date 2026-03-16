@@ -59,12 +59,89 @@ node -e '
   const port = Number(process.argv[2]);
   const dataDir = process.argv[3];
   const config = JSON.parse(fs.readFileSync(file, "utf8"));
+
+  const rootWhatsApp = config.channels?.whatsapp ?? {};
+  const defaultAccount = rootWhatsApp.accounts?.default ?? {};
+  const ownerAllowFrom = Array.isArray(config.commands?.ownerAllowFrom) && config.commands.ownerAllowFrom.length > 0
+    ? config.commands.ownerAllowFrom.map(String)
+    : Array.isArray(rootWhatsApp.allowFrom) && rootWhatsApp.allowFrom.length > 0
+      ? rootWhatsApp.allowFrom.map(String)
+      : Array.isArray(defaultAccount.allowFrom) && defaultAccount.allowFrom.length > 0
+        ? defaultAccount.allowFrom.map(String)
+        : [];
+
+  config.messages = {
+    ...(config.messages || {}),
+    ackReactionScope: "group-mentions",
+  };
+  config.commands = {
+    native: "auto",
+    nativeSkills: "auto",
+    restart: true,
+    ownerDisplay: "raw",
+    ...(config.commands || {}),
+    ownerAllowFrom,
+  };
+  config.cron = {
+    enabled: true,
+    sessionRetention: "7d",
+    ...(config.cron || {}),
+  };
+  config.agents = config.agents || {};
+  config.agents.list = Array.isArray(config.agents.list) ? config.agents.list : [];
+  if (config.agents.list[0]) {
+    const existingTools = config.agents.list[0].tools || {};
+    const allow = new Set([...(existingTools.allow || []), "web_fetch", "web_search", "cron", "image", "message"]);
+    const deny = new Set([...(existingTools.deny || []), "bash", "computer"]);
+    config.agents.list[0].tools = {
+      ...existingTools,
+      profile: "messaging",
+      allow: Array.from(allow),
+      deny: Array.from(deny),
+      exec: {
+        security: "deny",
+        ...((existingTools.exec && typeof existingTools.exec === "object") ? existingTools.exec : {}),
+      },
+    };
+  }
   config.gateway = config.gateway || {};
   config.gateway.port = port;
+  config.channels = config.channels || {};
+  config.channels.whatsapp = {
+    ...rootWhatsApp,
+    dmPolicy: "allowlist",
+    allowFrom: ownerAllowFrom,
+    selfChatMode: true,
+    groupPolicy: "disabled",
+    configWrites: true,
+    sendReadReceipts: true,
+    textChunkLimit: rootWhatsApp.textChunkLimit || 4000,
+    chunkMode: rootWhatsApp.chunkMode || "length",
+    mediaMaxMb: rootWhatsApp.mediaMaxMb || 50,
+    debounceMs: rootWhatsApp.debounceMs || 500,
+    ackReaction: {
+      emoji: "⚡",
+      direct: false,
+      group: "never",
+      ...(rootWhatsApp.ackReaction || {}),
+    },
+    actions: {
+      reactions: true,
+      sendMessage: true,
+      polls: true,
+      ...(rootWhatsApp.actions || {}),
+    },
+  };
+  config.channels.whatsapp.accounts = config.channels.whatsapp.accounts || {};
   if (config.channels && config.channels.whatsapp && config.channels.whatsapp.accounts) {
     for (const [accountId, account] of Object.entries(config.channels.whatsapp.accounts)) {
       if (account && typeof account.authDir === "string") {
         account.authDir = path.join(dataDir, "credentials", "whatsapp", accountId);
+      }
+      if (account && typeof account === "object") {
+        account.dmPolicy = "allowlist";
+        account.allowFrom = ownerAllowFrom;
+        account.groupPolicy = "disabled";
       }
     }
   }

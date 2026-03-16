@@ -54,7 +54,7 @@
         },
         "tools": {
           "profile": "messaging",
-          "allow": ["web_fetch", "web_search", "cron", "image"],
+          "allow": ["web_fetch", "web_search", "cron", "image", "message"],
           "deny": ["bash", "computer"],
           "exec": { "security": "deny" }
         }
@@ -90,7 +90,9 @@
   "commands": {
     "native": "auto",
     "nativeSkills": "auto",
-    "restart": true
+    "restart": true,
+    "ownerAllowFrom": ["OWNER_PHONE"],
+    "ownerDisplay": "raw"
   },
   "cron": {
     "enabled": true,
@@ -111,7 +113,10 @@
     "whatsapp": {
       "accounts": {
         "default": {
-          "authDir": "./data/credentials/whatsapp/default"
+          "authDir": "./data/credentials/whatsapp/default",
+          "dmPolicy": "allowlist",
+          "allowFrom": ["OWNER_PHONE"],
+          "groupPolicy": "disabled"
         }
       },
       "dmPolicy": "allowlist",
@@ -148,6 +153,7 @@
         "https://claw.bizgenix.ai"
       ]
     },
+    "trustedProxies": ["127.0.0.1", "::1"],
     "auth": {
       "mode": "token",
       "token": "${OPENCLAW_GATEWAY_TOKEN}"

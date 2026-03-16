@@ -43,7 +43,7 @@
         },
         "tools": {
           "profile": "messaging",
-          "allow": ["web_fetch", "web_search", "cron", "image"],
+          "allow": ["web_fetch", "web_search", "cron", "image", "message"],
           "deny": ["bash", "computer"],
           "exec": { "security": "deny" }
         }
@@ -76,17 +76,38 @@
     }
   ],
 
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerAllowFrom": ["918200858674"],
+    "ownerDisplay": "raw"
+  },
+
+  "cron": {
+    "enabled": true,
+    "sessionRetention": "7d"
+  },
+
   // -- WhatsApp Channel --
   "web": { "enabled": true },
   "channels": {
     "whatsapp": {
       "accounts": {
         "default": {
-          "authDir": "./data/credentials/whatsapp/default"
+          "authDir": "./data/credentials/whatsapp/default",
+          "dmPolicy": "allowlist",
+          "allowFrom": ["918200858674"],
+          "groupPolicy": "disabled"
         }
       },
       "dmPolicy": "allowlist",
       "allowFrom": ["918200858674"],
+      "selfChatMode": true,
       "groupPolicy": "disabled",
       "configWrites": true,
       "sendReadReceipts": true,
@@ -159,14 +180,5 @@
     "level": "info",
     "consoleLevel": "info",
     "redactSensitive": "tools"
-  },
-
-  // -- Cron (for scheduled tasks like weekly growth insights) --
-  "cron": {
-    "enabled": true,
-    "sessionRetention": "7d"
-  },
-
-  // -- Messages --
-  "messages": {}
+  }
 }
