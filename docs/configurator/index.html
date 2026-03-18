@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizClaw Setup - Simple Configuration</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    h1 { text-align: center; margin-bottom: 10px; font-size: 2.5rem; }
+    .subtitle { text-align: center; color: #94a3b8; margin-bottom: 40px; font-size: 1.1rem; }
+    .step { background: #1e293b; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #334155; }
+    .step h2 { color: #38bdf8; margin-bottom: 16px; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+    .step-number { background: #38bdf8; color: #0f172a; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; }
+    label { display: block; margin-bottom: 8px; color: #cbd5e1; font-weight: 500; }
+    input, select { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #e2e8f0; font-size: 1rem; margin-bottom: 16px; }
+    input:focus, select:focus { outline: none; border-color: #38bdf8; }
+    .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .team-option { background: #0f172a; border: 2px solid #334155; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; }
+    .team-option:hover { border-color: #38bdf8; }
+    .team-option.selected { border-color: #38bdf8; background: #1e3a5f; }
+    .team-option h3 { color: #38bdf8; margin-bottom: 8px; font-size: 1rem; }
+    .team-option p { color: #94a3b8; font-size: 0.85rem; }
+    .team-option .agents { margin-top: 10px; font-size: 0.75rem; color: #64748b; }
+    .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+    .agent-chip { background: #334155; padding: 8px 12px; border-radius: 20px; font-size: 0.85rem; text-align: center; }
+    .btn { background: linear-gradient(135deg, #38bdf8, #818cf8); color: #0f172a; border: none; padding: 16px 32px; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 20px; transition: transform 0.2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .output { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-top: 30px; display: none; }
+    .output h3 { color: #38bdf8; margin-bottom: 16px; }
+    .output pre { background: #1e293b; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; color: #94a3b8; }
+    .success-message { background: #065f46; color: #6ee7b7; padding: 16px; border-radius: 8px; margin-top: 20px; display: none; }
+    .copy-btn { background: #334155; color: #e2e8f0; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+    .copy-btn:hover { background: #475569; }
+    .hint { font-size: 0.85rem; color: #64748b; margin-top: -12px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 BizClaw Setup</h1>
+    <p class="subtitle">Your AI Business Assistant in 4 Simple Steps</p>
+
+    <!-- Step 1: Business Info -->
+    <div class="step">
+      <h2><span class="step-number">1</span> Business Details</h2>
+      <label>Business Name</label>
+      <input type="text" id="businessName" placeholder="e.g., Sharma Enterprises">
+      <label>Your Name</label>
+      <input type="text" id="ownerName" placeholder="e.g., Rajesh Sharma">
+      <label>WhatsApp Number (with country code)</label>
+      <input type="text" id="whatsapp" placeholder="e.g., +919812345678">
+      <p class="hint">This number will be connected to your AI assistant</p>
+    </div>
+
+    <!-- Step 2: Choose Team -->
+    <div class="step">
+      <h2><span class="step-number">2</span> Choose Your AI Team</h2>
+      <div class="team-grid">
+        <div class="team-option selected" data-team="starter">
+          <h3>🚀 Starter</h3>
+          <p>For new businesses</p>
+          <div class="agents">3 agents</div>
+        </div>
+        <div class="team-option" data-team="growth">
+          <h3>📈 Growth</h3>
+          <p>For growing teams</p>
+          <div class="agents">6 agents</div>
+        </div>
+        <div class="team-option" data-team="scale">
+          <h3>💼 Scale</h3>
+          <p>For established businesses</p>
+          <div class="agents">10 agents</div>
+        </div>
+        <div class="team-option" data-team="enterprise">
+          <h3>🏢 Enterprise</h3>
+          <p>Full automation</p>
+          <div class="agents">All 27 agents</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Features -->
+    <div class="step">
+      <h2><span class="step-number">3</span> Select Features</h2>
+      <label>Industry</label>
+      <select id="industry">
+        <option value="retail">Retail / Trading</option>
+        <option value="services">Professional Services (CA, Lawyers, Consultants)</option>
+        <option value="manufacturing">Manufacturing</option>
+        <option value="ecommerce">E-commerce</option>
+        <option value="startup">Startup</option>
+      </select>
+      <label>Primary Need</label>
+      <select id="primaryNeed">
+        <option value="automation">Business Automation</option>
+        <option value="sales">Sales & Lead Generation</option>
+        <option value="support">Customer Support</option>
+        <option value="accounting">Accounting & Finance</option>
+        <option value="all">Everything (Full Suite)</option>
+      </select>
+    </div>
+
+    <!-- Step 4: Plan -->
+    <div class="step">
+      <h2><span class="step-number">4</span> Choose Plan</h2>
+      <label>Select Your Plan</label>
+      <select id="plan">
+        <option value="starter">Starter - ₹999/month</option>
+        <option value="growth">Growth - ₹2,499/month</option>
+        <option value="scale">Scale - ₹4,999/month</option>
+        <option value="enterprise">Enterprise - Custom</option>
+      </select>
+    </div>
+
+    <button class="btn" onclick="generateConfig()">Generate Setup Code</button>
+
+    <div class="output" id="output">
+      <h3>📋 Your Setup Code</h3>
+      <pre id="configOutput"></pre>
+      <button class="copy-btn" onclick="copyConfig()">Copy to Clipboard</button>
+      <div class="success-message" id="successMessage">
+        ✅ Copied! Now SSH to your server and run:<br>
+        <code>curl -sSL bizclaw.ai/setup | bash</code>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const teamAgents = {
+      starter: ['Receptionist', 'CRM Manager', 'Follow-up Agent'],
+      growth: ['Receptionist', 'CRM Manager', 'Follow-up Agent', 'Lead Qualifier', 'Content Creator', 'Scheduler'],
+      scale: ['Receptionist', 'CRM Manager', 'Follow-up Agent', 'Lead Qualifier', 'Content Creator', 'Scheduler', 'Accountant', 'Tax Preparer', 'HR Coordinator', 'Support Agent'],
+      enterprise: ['All 27 Premium Agents']
+    };
+
+    // Team selection
+    document.querySelectorAll('.team-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('.team-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+      });
+    });
+
+    function generateConfig() {
+      const businessName = document.getElementById('businessName').value || 'My Business';
+      const ownerName = document.getElementById('ownerName').value || 'Owner';
+      const whatsapp = document.getElementById('whatsapp').value || '+919999999999';
+      const team = document.querySelector('.team-option.selected').dataset.team;
+      const industry = document.getElementById('industry').value;
+      const primaryNeed = document.getElementById('primaryNeed').value;
+      const plan = document.getElementById('plan').value;
+
+      const config = {
+        business: { name: businessName, owner: ownerName },
+        contact: { whatsapp: whatsapp },
+        team: team,
+        industry: industry,
+        focus: primaryNeed,
+        plan: plan,
+        agents: teamAgents[team]
+      };
+
+      const configJson = JSON.stringify(config, null, 2);
+      document.getElementById('configOutput').textContent = configJson;
+      document.getElementById('output').style.display = 'block';
+      document.getElementById('successMessage').style.display = 'none';
+    }
+
+    function copyConfig() {
+      const configText = document.getElementById('configOutput').textContent;
+      navigator.clipboard.writeText(configText).then(() => {
+        document.getElementById('successMessage').style.display = 'block';
+      });
+    }
+  </script>
+</body>
+</html>
