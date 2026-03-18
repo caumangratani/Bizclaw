@@ -23,8 +23,11 @@ You set reminders from natural language — text or voice. Owners are always bus
 2. After the job is created, reply only with a confirmation that it is **scheduled**.
 3. Never say "sent" or "delivered" during setup unless the user explicitly asked for an immediate message.
 4. For isolated cron jobs, prefer `wakeMode: "next-heartbeat"` so the owner's main chat does not get an immediate noisy summary.
-5. Inside the cron payload, ask the future run to output only the final reminder text. Do not ask it to "set", "confirm", or "explain" the reminder again.
+5. Inside the cron payload, ask the future run to output only the final reminder text. Do not ask it to "set", "confirm", "send", or "explain" the reminder again.
 6. Always encode India times with an explicit `+05:30` offset. Never use `Z` / UTC unless the user explicitly asked for UTC.
+7. For WhatsApp delivery to a contact, always set `delivery.channel: "whatsapp"` and `delivery.to` to a real E.164 number with `+`, for example `+919876543210`.
+8. Never omit `delivery.to` when the user asked you to send to another person. Never put a name, alias, or prose in `delivery.to`.
+9. The future-run payload must contain only the exact message body to send. It must not include "to:", "WhatsApp:", "message delivered", or any status wrapper.
 
 ### How to Schedule with the Cron Tool
 
@@ -36,7 +39,7 @@ cron tool → action: "add"
   sessionTarget: "isolated"
   wakeMode: "next-heartbeat"
   deleteAfterRun: true
-  payload: { kind: "agentTurn", lightContext: true, message: "Output only this WhatsApp reminder text: 🔔 Reminder! Call Mehta — it's 3:00 PM" }
+  payload: { kind: "agentTurn", lightContext: true, message: "At run time, reply with EXACTLY this text and nothing else: 🔔 Reminder! Call Mehta — it's 3:00 PM" }
   delivery: { mode: "announce", channel: "whatsapp" }
 ```
 
@@ -47,7 +50,7 @@ cron tool → action: "add"
   schedule: { kind: "cron", expr: "0 9 * * 1", tz: "Asia/Kolkata" }
   sessionTarget: "isolated"
   wakeMode: "next-heartbeat"
-  payload: { kind: "agentTurn", lightContext: true, message: "Output only this WhatsApp reminder text: 🔔 Weekly Reminder! GST check karo" }
+  payload: { kind: "agentTurn", lightContext: true, message: "At run time, reply with EXACTLY this text and nothing else: 🔔 Weekly Reminder! GST check karo" }
   delivery: { mode: "announce", channel: "whatsapp" }
 ```
 
@@ -68,11 +71,11 @@ cron tool → action: "add"
   sessionTarget: "isolated"
   wakeMode: "next-heartbeat"
   deleteAfterRun: true
-  payload: { kind: "agentTurn", lightContext: true, message: "Output only the final WhatsApp message to this party. Do not add setup notes, confirmations, or internal commentary." }
-  delivery: { mode: "announce", channel: "whatsapp", to: "919876543210" }
+  payload: { kind: "agentTurn", lightContext: true, message: "At run time, reply with ONLY the final WhatsApp text for Sharma Traders. Do not add headers, confirmations, status notes, or delivery commentary." }
+  delivery: { mode: "announce", channel: "whatsapp", to: "+919876543210" }
 ```
 
-The `delivery.to` field is the phone number (with country code, no +). This sends the message TO that number, not to the owner.
+The `delivery.to` field is the phone number in E.164 format with country code and `+`. This sends the message TO that number, not to the owner.
 
 Only do this for contacts the owner has explicitly enabled. If the target number is not yet approved, tell the owner to enable it first via chat control, for example:
 - `/allowlist add dm 919876543210`
@@ -84,8 +87,8 @@ Party: Sharma Traders, +919876543210, Rs.50,000 outstanding
 Party: Patel Textiles, +919123456789, Rs.1,25,000 outstanding
 
 → Create 2 separate cron jobs:
-  Job 1: delivery.to = "919876543210", schedule 3 days from now
-  Job 2: delivery.to = "919123456789", schedule 3 days from now
+  Job 1: delivery.to = "+919876543210", schedule 3 days from now
+  Job 2: delivery.to = "+919123456789", schedule 3 days from now
 ```
 
 Each job's payload.message should instruct the agent to compose a polite, professional collection message including the party name and amount.

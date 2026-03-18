@@ -20,8 +20,16 @@ if [ ! -d "$CLIENT_DIR" ]; then
   exit 1
 fi
 
-if ! command -v openclaw &>/dev/null; then
-  echo "Error: openclaw not found. Install with: sudo npm install -g openclaw"
+LOCAL_BUILD_DIR=""
+if [ -f "$ROOT_DIR/build/openclaw.mjs" ]; then
+  LOCAL_BUILD_DIR="$ROOT_DIR/build"
+elif [ -f "$ROOT_DIR/dist/openclaw.mjs" ]; then
+  LOCAL_BUILD_DIR="$ROOT_DIR/dist"
+fi
+
+if [ -z "$LOCAL_BUILD_DIR" ] && ! command -v openclaw &>/dev/null; then
+  echo "Error: no local build found and global openclaw is not installed."
+  echo "Run ./scripts/build.sh (wrapper) or build the repo dist, or install with: sudo npm install -g openclaw"
   exit 1
 fi
 
@@ -174,13 +182,23 @@ fi
 
 # Ask the OpenClaw CLI to stop any prior supervised gateway for this client
 # before we start a fresh instance under systemd.
-env \
-  OPENCLAW_CONFIG_PATH="$CLIENT_DIR/data/openclaw.json" \
-  OPENCLAW_STATE_DIR="$CLIENT_DIR/data" \
-  OPENCLAW_WORKSPACE_DIR="$CLIENT_DIR/data/workspace" \
-  OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
-  OPENCLAW_GATEWAY_PORT="$PORT" \
-  openclaw gateway stop >/dev/null 2>&1 || true
+if [ -n "$LOCAL_BUILD_DIR" ]; then
+  env \
+    OPENCLAW_CONFIG_PATH="$CLIENT_DIR/data/openclaw.json" \
+    OPENCLAW_STATE_DIR="$CLIENT_DIR/data" \
+    OPENCLAW_WORKSPACE_DIR="$CLIENT_DIR/data/workspace" \
+    OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
+    OPENCLAW_GATEWAY_PORT="$PORT" \
+    node "$LOCAL_BUILD_DIR/openclaw.mjs" gateway stop >/dev/null 2>&1 || true
+else
+  env \
+    OPENCLAW_CONFIG_PATH="$CLIENT_DIR/data/openclaw.json" \
+    OPENCLAW_STATE_DIR="$CLIENT_DIR/data" \
+    OPENCLAW_WORKSPACE_DIR="$CLIENT_DIR/data/workspace" \
+    OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
+    OPENCLAW_GATEWAY_PORT="$PORT" \
+    openclaw gateway stop >/dev/null 2>&1 || true
+fi
 sleep 1
 
 # Clear any stale gateway process that still owns this client's port.
@@ -216,14 +234,28 @@ fi
 
 echo "BizClaw client '$CLIENT_ID': http://0.0.0.0:${PORT}?token=${TOKEN}"
 
-# Run using globally installed openclaw (has compiled WhatsApp/Telegram)
-exec env \
-  OPENCLAW_CONFIG_PATH="$CLIENT_DIR/data/openclaw.json" \
-  OPENCLAW_STATE_DIR="$CLIENT_DIR/data" \
-  OPENCLAW_WORKSPACE_DIR="$CLIENT_DIR/data/workspace" \
-  OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
-  OPENCLAW_GATEWAY_PORT="$PORT" \
-  openclaw gateway run \
-    --allow-unconfigured \
-    --bind lan \
-    --port "$PORT"
+if [ -n "$LOCAL_BUILD_DIR" ]; then
+  echo "Using local OpenClaw build: $LOCAL_BUILD_DIR/openclaw.mjs"
+  exec env \
+    OPENCLAW_CONFIG_PATH="$CLIENT_DIR/data/openclaw.json" \
+    OPENCLAW_STATE_DIR="$CLIENT_DIR/data" \
+    OPENCLAW_WORKSPACE_DIR="$CLIENT_DIR/data/workspace" \
+    OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
+    OPENCLAW_GATEWAY_PORT="$PORT" \
+    node "$LOCAL_BUILD_DIR/openclaw.mjs" gateway run \
+      --allow-unconfigured \
+      --bind lan \
+      --port "$PORT"
+else
+  echo "Using global OpenClaw install"
+  exec env \
+    OPENCLAW_CONFIG_PATH="$CLIENT_DIR/data/openclaw.json" \
+    OPENCLAW_STATE_DIR="$CLIENT_DIR/data" \
+    OPENCLAW_WORKSPACE_DIR="$CLIENT_DIR/data/workspace" \
+    OPENCLAW_GATEWAY_TOKEN="$TOKEN" \
+    OPENCLAW_GATEWAY_PORT="$PORT" \
+    openclaw gateway run \
+      --allow-unconfigured \
+      --bind lan \
+      --port "$PORT"
+fi
