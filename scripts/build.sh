@@ -10,6 +10,10 @@ OPENCLAW_DIR="$ROOT_DIR/openclaw"
 OVERLAY_DIR="$ROOT_DIR/overlay"
 BUILD_DIR="$ROOT_DIR/build"
 
+# Ensure common Homebrew/system Node install locations are available even when
+# the current shell PATH is minimal (for example under Codex or systemd).
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
 echo "=== BizClaw Build ==="
 echo "Root: $ROOT_DIR"
 
@@ -29,14 +33,25 @@ echo "Copying OpenClaw to build directory..."
 cp -R "$OPENCLAW_DIR" "$BUILD_DIR"
 rm -rf "$BUILD_DIR/.git"
 
+# Step 3b: Apply BizClaw-owned runtime patches to the copied OpenClaw source
+echo "Applying OpenClaw runtime patches..."
+"$SCRIPT_DIR/apply-openclaw-runtime-patches.sh" "$BUILD_DIR"
+
 # Step 4: Install dependencies and build OpenClaw
 echo "Installing dependencies..."
 cd "$BUILD_DIR"
 
+PNPM_CMD=""
 if command -v pnpm &> /dev/null; then
-  pnpm install --frozen-lockfile
+  PNPM_CMD="pnpm"
+elif command -v corepack &> /dev/null; then
+  PNPM_CMD="corepack pnpm"
+fi
+
+if [ -n "$PNPM_CMD" ]; then
+  eval "$PNPM_CMD install --frozen-lockfile"
   echo "Building OpenClaw..."
-  pnpm build
+  eval "$PNPM_CMD build"
 elif command -v npm &> /dev/null; then
   echo "pnpm not found, using npm..."
   npm install
