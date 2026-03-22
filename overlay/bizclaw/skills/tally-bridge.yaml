@@ -1,0 +1,115 @@
+# ============================================================
+# BizClaw Skill — Tally Bridge
+# Read Tally data, generate reports, sync invoice status
+# Connects to Tally via local connector service (port 9000)
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+name: "tally-bridge"
+description: "Read Tally ERP data — vouchers, outstanding summaries, invoice reports — and sync status back to Tally"
+
+capabilities:
+  - id: "read_tally_vouchers"
+    description: "Read voucher entries from Tally — sales, purchases, payments, receipts, journal entries"
+    examples:
+      - "show me last 10 sales vouchers"
+      - "read purchase entries from this month"
+      - "get journal entries for March"
+  - id: "get_outstanding_summary"
+    description: "Get a full outstanding summary — debtors (receivables) and creditors (payables) with aging buckets"
+    examples:
+      - "show me outstanding"
+      - "who owes me money from Tally"
+      - "what do I owe vendors"
+      - "creditor summary"
+  - id: "generate_tally_report"
+    description: "Generate a formatted report from Tally data — sales register, purchase register, cash flow, trial balance"
+    examples:
+      - "Tally report for February sales"
+      - "generate purchase register"
+      - "show cash flow for last month"
+      - "trial balance as of today"
+  - id: "sync_invoice_status"
+    description: "Sync invoice status (paid/unpaid/partial) between Tally and WhatsApp follow-up records"
+    examples:
+      - "sync invoice status"
+      - "update paid status in Tally"
+      - "mark invoice as paid"
+
+triggers:
+  naturalLanguage:
+    - "show me outstanding"
+    - "Tally report"
+    - "pending invoices"
+    - "debtors list"
+    - "creditors summary"
+    - "sales register"
+    - "purchase register"
+    - "cash flow"
+    - "trial balance"
+    - "from Tally"
+    - "read from Tally"
+    - "Tally data"
+    - "outstanding from Tally"
+  scheduled:
+    - cron: "0 30 8 * * 1-5"     # 8:30 AM IST, weekdays — sync outstanding before morning brief
+      action: "get_outstanding_summary"
+      reason: "Pre-compute outstanding for daily brief skill"
+    - cron: "0 0 9 * * *"       # 9 AM daily — export daily sales to workspace
+      action: "read_tally_vouchers"
+      args:
+        voucherType: "Sales"
+        dateRange: "yesterday"
+      reason: "Daily sales sync"
+
+tools:
+  - name: "tally-connector"
+    source: "bizclaw"
+    args:
+      action: "{{ action }}"
+      voucherType: "{{ voucherType | optional }}"
+      fromDate: "{{ fromDate | optional }}"
+      toDate: "{{ toDate | optional }}"
+      ledger: "{{ ledger | optional }}"
+  - name: "business-calendar"
+    source: "bizclaw"
+    args:
+      type: "business_days"
+      month: "{{ month | optional }}"
+  - name: "notion-sync"
+    source: "external"
+    args:
+      database: "invoices"
+      action: "upsert"
+  - name: "whatsapp-templates"
+    source: "bizclaw"
+    args:
+      template: "invoice_summary"
+      language: "en"
+
+permissions:
+  network:
+    - host: "localhost"
+      ports: [9000, 9001, 9002]
+    - host: "127.0.0.1"
+      ports: [9000, 9001, 9002]
+    - host: "api.anthropic.com"
+      ports: [443]
+    - host: "api.notion.com"
+      ports: [443]
+  filesystem:
+    - "/data/tally-export"
+    - "/data/tally-export/**"
+    - "/data/workspace"
+    - "/data/workspace/**"
+  inference:
+    providers: ["anthropic"]
+
+config:
+  tallyConnectorUrl: "http://localhost:9000"   # Local Tally connector service
+  companyName: null                            # Set per-client
+  autoExportDaily: true
+  exportFormat: "json"                         # "json" | "csv"
+  exportPath: "/data/tally-export"
+  syncToNotion: false                          # Requires explicit approval
+  maxVouchersPerQuery: 1000
+  cacheResultsMinutes: 30                      # Cache Tally reads to avoid hammering

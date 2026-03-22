@@ -1,0 +1,105 @@
+# ============================================================
+# BizClaw Skill — Daily Business Brief
+# Morning summary: pending payments, today's tasks, reminders
+# Sent to WhatsApp at 9:00 AM IST every business day
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+name: "daily-business-brief"
+description: "Send a morning business summary to WhatsApp — pending collections, today's tasks, key reminders, and top 3 priority actions"
+
+capabilities:
+  - id: "send_morning_brief"
+    description: "Compile and send a structured morning brief to the business owner via WhatsApp"
+    examples:
+      - "send morning brief"
+      - "daily summary"
+      - "give me today's business update"
+  - id: "pending_collections_summary"
+    description: "List all pending collections and payments due, with age analysis (overdue, due today, due this week)"
+    examples:
+      - "show pending collections"
+      - "what payments are overdue"
+      - "pending payments summary"
+  - id: "today_reminders"
+    description: "List all reminders and tasks due today — GST, payroll, vendor payments, meetings"
+    examples:
+      - "what do I have today"
+      - "today's reminders"
+      - "agenda for today"
+  - id: "top_3_priority_tasks"
+    description: "Based on urgency and business impact, surface the top 3 actions the owner should take today"
+    examples:
+      - "what should I focus on today"
+      - "top priorities for today"
+      - "most important tasks today"
+
+triggers:
+  naturalLanguage:
+    - "morning brief"
+    - "daily summary"
+    - "today's agenda"
+    - "today's reminders"
+    - "pending collections"
+    - "what do I have today"
+    - "business summary"
+  scheduled:
+    - cron: "0 0 9 * * 1-5"       # 9:00 AM IST, Monday-Friday (business days)
+      action: "send_morning_brief"
+      reason: "Daily morning business brief before business hours start"
+    - cron: "0 0 8 * * 1-5"       # 8:00 AM IST for heavy processing (run AI before user wakes)
+      action: "compile_brief"
+      reason: "Background compilation so brief is ready instantly at 9 AM"
+
+tools:
+  - name: "business-calendar"
+    source: "bizclaw"
+    args:
+      type: "reminders"
+      date: "today"
+  - name: "tally-connector"
+    source: "bizclaw"
+    args:
+      action: "get_outstandings"
+      aging: true
+  - name: "whatsapp-templates"
+    source: "bizclaw"
+    args:
+      template: "morning_brief"
+      language: "{{ language | default('en') }}"
+  - name: "notion-sync"
+    source: "external"
+    args:
+      database: "tasks"
+      filter: "dueDate = today"
+
+permissions:
+  network:
+    - host: "smtp-relay.gmail.com"
+      ports: [587]
+    - host: "smtp.gmail.com"
+      ports: [465, 587]
+    - host: "graph.facebook.com"
+      ports: [443]
+    - host: "wa.me"
+      ports: [443]
+    - host: "api.notion.com"
+      ports: [443]
+    - host: "api.anthropic.com"
+      ports: [443]
+    - host: "localhost"
+      ports: [9000]
+  filesystem:
+    - "/data/workspace"
+    - "/data/tally-export"
+
+config:
+  scheduleTime: "09:00 IST"
+  businessDaysOnly: true          # Skip weekends
+  includeNotionTasks: true        # Pull from Notion if connected
+  includeTallyOutstanding: true   # Pull pending payments from Tally
+  briefStyle: "concise"           # "concise" | "detailed"
+  maxItemsPerSection: 5           # Cap each section to keep brief readable on WhatsApp
+  languages:
+    - "en"                        # Default to English
+    - "hi"                        # Hindi support
+    - "gu"                        # Gujarati support

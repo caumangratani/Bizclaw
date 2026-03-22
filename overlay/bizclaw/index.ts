@@ -3,8 +3,8 @@
 // Bizgenix AI Solutions Pvt. Ltd.
 // ============================================================
 
-import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Resolve paths relative to this plugin directory
@@ -16,14 +16,36 @@ import { gstLookupTool } from "./tools/gst-lookup.js";
 import { businessCalendarTool } from "./tools/business-calendar.js";
 import { whatsappTemplatesTool } from "./tools/whatsapp-templates.js";
 
+// Import policy system
+import { getPolicyManager, loadSkillsMetadata, type PolicyCheckResult, type SkillMetadata } from "./policy-manager.js";
+
 export default {
   id: "bizclaw",
   name: "BizClaw Plugin",
 
   register(api: any) {
-    // ----------------------------------------------------------
-    // 1. Inject SOUL.md into every agent's system prompt
-    // ----------------------------------------------------------
+    // ──────────────────────────────────────────────────────────
+    // A. Policy Manager & Skills bootstrap
+    // ──────────────────────────────────────────────────────────
+    let policyManager: ReturnType<typeof getPolicyManager>;
+    try {
+      // Policy name can be overridden via config; default to "default"
+      const policyName = api.config?.policyTier ?? "default";
+      policyManager = getPolicyManager(policyName);
+
+      const policyInfo = policyManager.getPolicyInfo();
+      console.log(`[bizclaw] Policy system active: "${policyInfo.name}" from ${policyInfo.loadedFrom}`);
+
+      // Load and register skill metadata
+      const skills = loadSkillsMetadata();
+      console.log(`[bizclaw] Loaded ${skills.length} skill definitions: ${skills.map((s) => s.name).join(", ")}`);
+    } catch (err) {
+      console.warn(`[bizclaw] Policy manager failed to initialize: ${(err as Error).message}. Running without policy enforcement.`);
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // B. Inject SOUL.md into every agent's system prompt
+    // ──────────────────────────────────────────────────────────
     api.on("before_prompt_build", (event: any) => {
       try {
         const soulPath =
@@ -70,7 +92,83 @@ export default {
     });
 
     // ----------------------------------------------------------
-    // 4. Upsell detection hook — flag requests outside skill set
+    // 4. Policy enforcement — before_action hook
+    // Intercepts every agent action and validates against policy
+    // ----------------------------------------------------------
+    if (policyManager) {
+      api.on("before_action", (event: any) => {
+        const { actionType, actionId, target, metadata } = event;
+        const ts = new Date().toISOString();
+
+        // Network access check
+        if (actionType === "network_request" && target?.host) {
+          const port = target.port ?? 443;
+          const result = policyManager.canAccessNetwork(target.host, port);
+          if (!result.allowed) {
+            event.blocked = true;
+            event.blockReason = result.reason;
+            console.log(
+              `[bizclaw:policy] BLOCKED network_access host=${target.host}:${port} rule="${result.rule}" reason="${result.reason}" ts=${ts}`
+            );
+          }
+          return;
+        }
+
+        // Filesystem access check
+        if (actionType === "filesystem_read" || actionType === "filesystem_write") {
+          const path = target?.path ?? "";
+          const result = policyManager.canAccessFile(path);
+          if (!result.allowed) {
+            event.blocked = true;
+            event.blockReason = result.reason;
+            console.log(
+              `[bizclaw:policy] BLOCKED filesystem_${actionType.replace("filesystem_", "")} path="${path}" reason="${result.reason}" ts=${ts}`
+            );
+          }
+          return;
+        }
+
+        // Approval required check — flag for human review
+        if (actionId && policyManager.requiresApproval(actionId)) {
+          event.requiresApproval = true;
+          event.approvalReason = `Policy requires approval for action: ${actionId}`;
+          console.log(
+            `[bizclaw:policy] APPROVAL_REQUIRED action=${actionId} ts=${ts}`
+          );
+        }
+      });
+
+      // ────────────────────────────────────────────────────────
+      // 5. Policy logging — after_action hook
+      // Records every action with policy decision for audit trail
+      // ────────────────────────────────────────────────────────
+      api.on("after_action", (event: any) => {
+        const { actionType, actionId, blocked, blockReason, requiresApproval, approved, durationMs } = event;
+        const ts = new Date().toISOString();
+
+        if (blocked) {
+          console.log(
+            `[bizclaw:policy:AUDIT] action=${actionId ?? actionType} outcome=BLOCKED reason="${blockReason}" ts=${ts}`
+          );
+        } else if (requiresApproval && !approved) {
+          console.log(
+            `[bizclaw:policy:AUDIT] action=${actionId ?? actionType} outcome=PENDING_APPROVAL reason="${event.approvalReason}" ts=${ts}`
+          );
+        } else if (requiresApproval && approved) {
+          console.log(
+            `[bizclaw:policy:AUDIT] action=${actionId ?? actionType} outcome=APPROVED_BY_HUMAN durationMs=${durationMs} ts=${ts}`
+          );
+        } else {
+          console.log(
+            `[bizclaw:policy:AUDIT] action=${actionId ?? actionType} outcome=ALLOWED durationMs=${durationMs ?? "?"} ts=${ts}`
+          );
+        }
+      });
+    }
+
+    // ----------------------------------------------------------
+    // 4b. Upsell detection hook — flag requests outside skill set
+    // (renumbered; old #4 moved to policy section above)
     // ----------------------------------------------------------
     api.on("message_sending", (event: any) => {
       // If the outgoing message contains "I can't" or "I'm not able",
