@@ -35,7 +35,7 @@ Run on one Droplet:
 Create the customer:
 
 ```bash
-cd /Users/fs/Desktop/Bizgenix-Projects/BizClaw
+cd <path-to-bizclaw-repo>
 ./scripts/provision-managed-client.sh demo-customer "Demo Customer" "Trading & Distribution" "+919876543210"
 ```
 

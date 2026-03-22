@@ -15,14 +15,14 @@ Create a new Railway service with:
 
 Railway will use:
 
-- [package.json](/Users/fs/Desktop/Bizgenix-Projects/BizClaw/website/package.json)
-- [server.mjs](/Users/fs/Desktop/Bizgenix-Projects/BizClaw/website/server.mjs)
-- [railway.toml](/Users/fs/Desktop/Bizgenix-Projects/BizClaw/website/railway.toml)
+- `website/package.json`
+- `website/server.mjs`
+- `website/railway.toml`
 
 ## Local validation
 
 ```bash
-cd /Users/fs/Desktop/Bizgenix-Projects/BizClaw/website
+cd website
 npm start
 ```
 
@@ -34,7 +34,7 @@ Checks:
 ## Railway CLI flow
 
 ```bash
-cd /Users/fs/Desktop/Bizgenix-Projects/BizClaw/website
+cd website
 railway login
 railway init
 railway up
