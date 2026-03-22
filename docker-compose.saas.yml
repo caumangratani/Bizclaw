@@ -1,0 +1,48 @@
+# BizClaw SaaS Stack — docker-compose.yml
+# Deploy on any VPS for fully self-hosted multi-tenant AI assistant
+
+services:
+  # ── Admin Panel ──────────────────────────────────────
+  admin:
+    build:
+      context: .
+      dockerfile: admin/Dockerfile
+    ports:
+      - "18800:18800"
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_WEBHOOK_SECRET:-}
+      ADMIN_BASE_URL: ${ADMIN_BASE_URL:-http://localhost:18800}
+      BIZCLAW_GATEWAY_PORT: 18789
+      CLIENTS_DIR: /clients
+    volumes:
+      - ./clients:/clients
+      - admin_data:/admin_data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18800/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Nginx Reverse Proxy ──────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - admin
+    restart: unless-stopped
+
+  # ── Per-Client BizClaw Containers ──────────────────
+  # Clients are dynamically started/stopped by the admin panel
+  # See scripts/provision-client.sh for client container setup
+
+volumes:
+  admin_data:
+  clients:

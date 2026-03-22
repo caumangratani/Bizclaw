@@ -1,0 +1,38 @@
+name: Deploy SaaS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "admin/package-lock.json"
+
+      - name: Install dependencies
+        run: |
+          cd admin && npm ci
+          cd ../website && npm ci
+
+      - name: Run tests
+        run: |
+          # Add your test commands here
+          echo "No tests configured yet"
+
+      - name: Deploy to Railway
+        if: github.ref == 'refs/heads/main'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          npm install -g @railway/cli
+          railway up --service bizclaw-admin

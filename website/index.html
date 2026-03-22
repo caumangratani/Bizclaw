@@ -735,35 +735,48 @@
             </div>
           </div>
         </div>
-        <form class="contact-form" onsubmit="handleSubmit(event)">
+        <form class="contact-form" id="contactForm" onsubmit="handleContactSubmit(event)">
           <div class="form-group">
-            <input type="text" placeholder="Your Name" required>
+            <input type="text" name="name" placeholder="Your Name" required>
+          </div>
+          <div class="form-group">
+            <input type="text" name="business" placeholder="Business Name">
           </div>
           <div class="form-row">
             <div class="form-group">
-              <input type="tel" placeholder="Phone Number" required>
+              <input type="tel" name="phone" placeholder="Phone Number" required>
             </div>
             <div class="form-group">
-              <input type="text" placeholder="City">
+              <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <select name="employeeCount">
+                <option value="">Number of Employees</option>
+                <option value="1-10">1-10</option>
+                <option value="11-50">11-50</option>
+                <option value="51-200">51-200</option>
+                <option value="201-500">201-500</option>
+                <option value="500+">500+</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <select name="monthlyRevenue">
+                <option value="">Monthly Revenue</option>
+                <option value="Under 10L">Under ₹10 Lakh</option>
+                <option value="10L-50L">₹10-50 Lakh</option>
+                <option value="50L-1Cr">₹50 Lakh - 1 Crore</option>
+                <option value="1Cr-5Cr">₹1-5 Crore</option>
+                <option value="5Cr+">₹5 Crore+</option>
+              </select>
             </div>
           </div>
           <div class="form-group">
-            <input type="text" placeholder="Business Name">
+            <textarea name="message" placeholder="What challenges are you facing?" rows="3"></textarea>
           </div>
-          <div class="form-group">
-            <select>
-              <option value="">Number of Employees</option>
-              <option>1-10</option>
-              <option>11-50</option>
-              <option>51-200</option>
-              <option>201-500</option>
-              <option>500+</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <textarea placeholder="Tell us about your business challenges..." rows="3"></textarea>
-          </div>
-          <button type="submit" class="btn btn-hero btn-full">Request Demo</button>
+          <button type="submit" class="btn btn-hero btn-full" id="contactSubmitBtn">Request Demo</button>
+          <p id="contactFormStatus" style="display:none; margin-top:12px; font-size:0.9rem;"></p>
         </form>
       </div>
     </div>

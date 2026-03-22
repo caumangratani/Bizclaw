@@ -4,6 +4,19 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// Lightweight JSON body parser for API routes
+async function parseJson(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.on("data", (chunk) => { body += chunk; });
+    req.on("end", () => {
+      try { resolve(body ? JSON.parse(body) : {}); }
+      catch (e) { reject(e); }
+    });
+    req.on("error", reject);
+  });
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const port = Number(process.env.PORT || 4173);
@@ -56,6 +69,48 @@ const server = http.createServer(async (req, res) => {
 
   if (pathname === "/healthz") {
     sendJson(res, 200, { ok: true, service: "bizclaw-ai-website" });
+    return;
+  }
+
+  // ── Lead Capture API ──────────────────────────────────────────────────────
+  if (pathname === "/api/lead" && req.method === "POST") {
+    try {
+      const body = await parseJson(req);
+      const lead = {
+        id: `lead_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        name: String(body.name || "").trim(),
+        business: String(body.business || "").trim(),
+        phone: String(body.phone || "").trim(),
+        email: String(body.email || "").trim(),
+        employeeCount: String(body.employeeCount || "").trim(),
+        monthlyRevenue: String(body.monthlyRevenue || "").trim(),
+        message: String(body.message || "").trim()
+      };
+
+      // Save to leads.json
+      const leadsPath = path.join(__dirname, "leads.json");
+      let leads = [];
+      try {
+        const raw = await fs.readFile(leadsPath, "utf8");
+        leads = JSON.parse(raw);
+      } catch {
+        leads = [];
+      }
+      leads.unshift(lead);
+      await fs.writeFile(leadsPath, JSON.stringify(leads, null, 2), "utf8");
+
+      console.log(`[lead] New lead captured: ${lead.name} (${lead.phone}) — ${lead.business}`);
+
+      sendJson(res, 200, {
+        ok: true,
+        message: "Thank you! Our team will reach out within 24 hours.",
+        leadId: lead.id
+      });
+    } catch (err) {
+      console.error("[lead] Error:", err.message);
+      sendJson(res, 500, { error: "Failed to capture lead. Please try again." });
+    }
     return;
   }
 

@@ -357,3 +357,123 @@ function handleSubmit(event) {
   wrapper.appendChild(waLink);
   form.appendChild(wrapper);
 }
+
+/**
+ * New contact form handler — POSTs to /api/lead and shows a thank-you state.
+ * The form now has name="" attrs on every field.
+ */
+async function handleContactSubmit(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const statusEl = document.getElementById('contactFormStatus');
+  const submitBtn = document.getElementById('contactSubmitBtn');
+
+  // Gather field values via name attributes
+  const fd = new FormData(form);
+  const payload = {
+    name:           (fd.get('name')           || '').trim(),
+    business:       (fd.get('business')       || '').trim(),
+    phone:          (fd.get('phone')          || '').trim(),
+    email:          (fd.get('email')          || '').trim(),
+    employeeCount:  (fd.get('employeeCount')  || '').trim(),
+    monthlyRevenue: (fd.get('monthlyRevenue')|| '').trim(),
+    message:        (fd.get('message')        || '').trim()
+  };
+
+  // Basic client-side validation
+  if (!payload.name || !payload.phone || !payload.email) {
+    if (statusEl) {
+      statusEl.style.color = '#E94560';
+      statusEl.style.display = 'block';
+      statusEl.textContent = 'Please fill in your name, phone, and email.';
+    }
+    return;
+  }
+
+  // Loading state
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+  }
+  if (statusEl) {
+    statusEl.style.display = 'none';
+  }
+
+  try {
+    const res = await fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      // Success — replace form with thank-you using safe DOM construction
+      if (form) {
+        const wrapper = document.createElement('div');
+        wrapper.style.textAlign = 'center';
+        wrapper.style.padding = '2rem 1rem';
+
+        const emoji = document.createElement('div');
+        emoji.style.fontSize = '3rem';
+        emoji.style.marginBottom = '0.5rem';
+        emoji.textContent = '\u{1F389}';
+        wrapper.appendChild(emoji);
+
+        const heading = document.createElement('h3');
+        heading.style.marginBottom = '0.5rem';
+        heading.textContent = payload.name ? 'Thank You, ' + escapeHTML(payload.name) + '!' : 'Thank You!';
+        wrapper.appendChild(heading);
+
+        const para = document.createElement('p');
+        para.style.color = '#6C757D';
+        para.textContent = "Our team will reach out within 24 hours.";
+        wrapper.appendChild(para);
+
+        const waLink = document.createElement('a');
+        waLink.href = 'https://wa.me/919999999999?text=' + encodeURIComponent('Hi, I just submitted the BizClaw form. Looking forward to hearing from you!');
+        waLink.className = 'btn btn-whatsapp';
+        waLink.style.marginTop = '1.5rem';
+        waLink.style.display = 'inline-flex';
+        waLink.style.gap = '0.5rem';
+        waLink.setAttribute('target', '_blank');
+        waLink.setAttribute('rel', 'noopener noreferrer');
+
+        const waSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        waSvg.setAttribute('width', '20');
+        waSvg.setAttribute('height', '20');
+        waSvg.setAttribute('viewBox', '0 0 24 24');
+        waSvg.setAttribute('fill', 'currentColor');
+        ['M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z',
+         'M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z'
+        ].forEach(d => {
+          const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          p.setAttribute('d', d);
+          waSvg.appendChild(p);
+        });
+        waLink.appendChild(waSvg);
+
+        const waSpan = document.createElement('span');
+        waSpan.textContent = 'Chat on WhatsApp';
+        waLink.appendChild(waSpan);
+
+        wrapper.appendChild(waLink);
+        form.replaceWith(wrapper);
+      }
+    } else {
+      throw new Error(data.error || 'Submission failed');
+    }
+  } catch (err) {
+    if (statusEl) {
+      statusEl.style.color = '#E94560';
+      statusEl.style.display = 'block';
+      statusEl.textContent = err.message || 'Something went wrong. Please try again.';
+    }
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Request Demo';
+    }
+  }
+}

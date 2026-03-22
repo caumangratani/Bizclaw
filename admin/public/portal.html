@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizClaw Portal</title>
+  <style>
+    :root {
+      --sidebar-bg: #1A1A2E;
+      --sidebar-border: rgba(233, 69, 96, 0.2);
+      --content-bg: #0F0F1A;
+      --panel-bg: #16213E;
+      --panel-2: #0F3460;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #FFFFFF;
+      --text-muted: #A0A0B0;
+      --accent: #E94560;
+      --accent-soft: rgba(233, 69, 96, 0.12);
+      --success: #22C55E;
+      --success-soft: rgba(34, 197, 94, 0.12);
+      --warning: #F59E0B;
+      --warning-soft: rgba(245, 158, 11, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--content-bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .sidebar-logo .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), #FF6B6B);
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .sidebar-logo .logo-text {
+      font-family: 'Poppins', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+
+    .sidebar-logo .logo-text span { color: var(--accent); }
+
+    .sidebar-nav { flex: 1; padding: 16px 12px; }
+    .nav-section { margin-bottom: 24px; }
+    .nav-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 0 12px;
+      margin-bottom: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--sidebar-border);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), #FF6B6B);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .user-details { flex: 1; min-width: 0; }
+    .user-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-plan { font-size: 12px; color: var(--text-muted); }
+
+    .main {
+      flex: 1;
+      margin-left: 260px;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .page-header { margin-bottom: 32px; }
+    .page-title { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .page-subtitle { color: var(--text-muted); font-size: 15px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .stat-label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 700; }
+
+    .section {
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title { font-size: 18px; font-weight: 600; }
+
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .health-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+    }
+
+    .health-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .health-dot.up { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .health-dot.down { background: var(--accent); }
+    .health-dot.pending { background: var(--warning); }
+
+    .health-label { font-size: 14px; }
+    .health-status { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .approval-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .approval-item:last-child { margin-bottom: 0; }
+
+    .approval-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .approval-icon.action { background: var(--warning-soft); }
+    .approval-icon.high { background: var(--accent-soft); }
+    .approval-icon.low { background: var(--success-soft); }
+
+    .approval-content { flex: 1; min-width: 0; }
+    .approval-title { font-weight: 600; margin-bottom: 4px; }
+    .approval-meta { font-size: 13px; color: var(--text-muted); }
+
+    .approval-risk {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    .approval-risk.high { background: var(--accent-soft); color: var(--accent); }
+    .approval-risk.medium { background: var(--warning-soft); color: var(--warning); }
+    .approval-risk.low { background: var(--success-soft); color: var(--success); }
+
+    .approval-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-approve { background: var(--success); color: white; }
+    .btn-approve:hover { background: #16A34A; }
+    .btn-deny { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+    .btn-deny:hover { border-color: var(--accent); color: var(--accent); }
+
+    .billing-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .billing-item {
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+    }
+
+    .billing-item-label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+    .billing-item-value { font-size: 22px; font-weight: 700; }
+
+    .soul-editor {
+      width: 100%;
+      min-height: 300px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      resize: vertical;
+    }
+
+    .soul-editor:focus { outline: none; border-color: var(--accent); }
+    .soul-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #FF6B6B);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(233, 69, 96, 0.3);
+    }
+
+    .notification-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+
+    .notification-label { font-size: 15px; }
+    .notification-desc { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+    .toggle {
+      width: 48px;
+      height: 26px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 13px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .toggle.active { background: var(--success); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+
+    .toggle.active::after { transform: translateX(22px); }
+
+    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--accent); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .health-grid { grid-template-columns: 1fr; }
+      .billing-info { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--sidebar-border);
+      }
+
+      .sidebar-nav {
+        display: flex;
+        overflow-x: auto;
+        padding: 12px;
+        gap: 8px;
+      }
+
+      .nav-section { display: contents; }
+      .nav-section-title { display: none; }
+      .nav-item { white-space: nowrap; }
+
+      .main { margin-left: 0; padding: 20px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">BC</span>
+      <span class="logo-text">Biz<span>Claw</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Overview</div>
+        <div class="nav-item active" data-page="dashboard">
+          <span>&#9783;</span> Dashboard
+        </div>
+        <div class="nav-item" data-page="approvals">
+          <span>&#10004;</span> Approvals
+          <span class="nav-badge hidden" id="approvals-badge">0</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Account</div>
+        <div class="nav-item" data-page="billing"><span>&#36;</span> Billing</div>
+        <div class="nav-item" data-page="usage"><span>&#9776;</span> Usage Stats</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Configuration</div>
+        <div class="nav-item" data-page="settings"><span>&#9881;</span> Settings</div>
+        <div class="nav-item" data-page="soul"><span>&#10070;</span> SOUL Editor</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">System</div>
+        <div class="nav-item" data-page="health"><span>&#10003;</span> Health Status</div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">--</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name">Loading...</div>
+          <div class="user-plan" id="user-plan">--</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section id="page-dashboard" class="page">
+      <div class="page-header">
+        <h1 class="page-title">Welcome back</h1>
+        <p class="page-subtitle" id="dashboard-greeting">Here's your business at a glance</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Pending Approvals</div>
+          <div class="stat-value" id="stat-pending">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Messages This Month</div>
+          <div class="stat-value" id="stat-messages">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tasks Completed</div>
+          <div class="stat-value" id="stat-tasks">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">API Calls</div>
+          <div class="stat-value" id="stat-apicalls">-</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Recent Activity</h2>
+        </div>
+        <div id="recent-activity">
+          <div class="empty-state"><div class="icon">&#9203;</div><p>No recent activity</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-approvals" class="page hidden">
+      <div class="page-header">
+        <h1 class="page-title">Pending Approvals</h1>
+        <p class="page-subtitle">Review and approve actions requested by your AI assistant</p>
+      </div>
+      <div class="section">
+        <div id="approvals-list">
+          <div class="empty-state"><div class="icon">&#10004;</div><p>No pending approvals</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-billing" class="page hidden">
+      <div class="page-header">
+        <h1 class="page-title">Billing</h1>
+        <p class="page-subtitle">Manage your subscription and payment settings</p>
+      </div>
+      <div class="section">
+        <div class="section-header"><h2 class="section-title">Current Plan</h2></div>
+        <div class="billing-info">
+          <div class="billing-item">
+            <div class="billing-item-label">Plan</div>
+            <div class="billing-item-value" id="billing-plan">-</div>
+          </div>
+          <div class="billing-item">
+            <div class="billing-item-label">Next Payment</div>
+            <div class="billing-item-value" id="billing-next">-</div>
+          </div>
+          <div class="billing-item">
+            <div class="billing-item-label">Status</div>
+            <div class="billing-item-value" id="billing-status">-</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-usage" class="page hidden">
+      <div class="page-header">
+        <h1 class="page-title">Usage Statistics</h1>
+        <p class="page-subtitle">Track your AI assistant's activity and resource usage</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Messages (MTD)</div>
+          <div class="stat-value" id="usage-messages">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tasks Completed</div>
+          <div class="stat-value" id="usage-tasks">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">API Calls (MTD)</div>
+          <div class="stat-value" id="usage-apicalls">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Most Used Tool</div>
+          <div class="stat-value" id="usage-toptool" style="font-size: 18px;">-</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-settings" class="page hidden">
+      <div class="page-header">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Configure your portal preferences and notifications</p>
+      </div>
+      <div class="section">
+        <div class="section-header"><h2 class="section-title">Business Information</h2></div>
+        <dl style="display: grid; grid-template-columns: 140px 1fr; gap: 12px;">
+          <dt style="color: var(--text-muted);">Business Name</dt><dd id="info-business">-</dd>
+          <dt style="color: var(--text-muted);">Business Type</dt><dd id="info-type">-</dd>
+          <dt style="color: var(--text-muted);">Email</dt><dd id="info-email">-</dd>
+          <dt style="color: var(--text-muted);">Phone</dt><dd id="info-phone">-</dd>
+        </dl>
+      </div>
+      <div class="section">
+        <div class="section-header"><h2 class="section-title">Notification Preferences</h2></div>
+        <div class="notification-toggle">
+          <div>
+            <div class="notification-label">Approval Notifications</div>
+            <div class="notification-desc">Get notified when actions require your approval</div>
+          </div>
+          <div class="toggle active" data-setting="approval_notifications"></div>
+        </div>
+        <div class="notification-toggle">
+          <div>
+            <div class="notification-label">Daily Summary</div>
+            <div class="notification-desc">Receive a daily summary of AI activity</div>
+          </div>
+          <div class="toggle active" data-setting="daily_summary"></div>
+        </div>
+        <div class="notification-toggle">
+          <div>
+            <div class="notification-label">Usage Alerts</div>
+            <div class="notification-desc">Alert when approaching usage limits</div>
+          </div>
+          <div class="toggle" data-setting="usage_alerts"></div>
+        </div>
+        <div class="notification-toggle">
+          <div>
+            <div class="notification-label">System Health Alerts</div>
+            <div class="notification-desc">Get notified of system issues or downtime</div>
+          </div>
+          <div class="toggle active" data-setting="health_alerts"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-soul" class="page hidden">
+      <div class="page-header">
+        <h1 class="page-title">SOUL Editor</h1>
+        <p class="page-subtitle">Customize your AI assistant's personality and behavior</p>
+      </div>
+      <div class="section">
+        <div class="section-header"><h2 class="section-title">Agent Personality (SOUL.md)</h2></div>
+        <textarea class="soul-editor" id="soul-content" placeholder="Loading..."></textarea>
+        <div class="soul-actions">
+          <button class="btn btn-deny" id="soul-reset">Reset to Default</button>
+          <button class="btn btn-primary" id="soul-save">Save Changes</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-health" class="page hidden">
+      <div class="page-header">
+        <h1 class="page-title">System Health</h1>
+        <p class="page-subtitle">Monitor the status of your BizClaw services</p>
+      </div>
+      <div class="section">
+        <div class="section-header"><h2 class="section-title">Service Status</h2></div>
+        <div class="health-grid">
+          <div class="health-item">
+            <div class="health-dot" id="health-gateway-dot"></div>
+            <div>
+              <div class="health-label">AI Gateway</div>
+              <div class="health-status" id="health-gateway-status">Checking...</div>
+            </div>
+          </div>
+          <div class="health-item">
+            <div class="health-dot" id="health-whatsapp-dot"></div>
+            <div>
+              <div class="health-label">WhatsApp Integration</div>
+              <div class="health-status" id="health-whatsapp-status">Checking...</div>
+            </div>
+          </div>
+          <div class="health-item">
+            <div class="health-dot up" id="health-portal-dot"></div>
+            <div>
+              <div class="health-label">Client Portal</div>
+              <div class="health-status" id="health-portal-status">Operational</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-header"><h2 class="section-title">Last Active</h2></div>
+        <p id="health-last-active" style="color: var(--text-muted);">Loading...</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let currentPage = 'dashboard';
+    let clientInfo = null;
+    let approvals = [];
+
+    function showToast(message, type) {
+      type = type || 'success';
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + type + ' show';
+      setTimeout(function() { toast.className = 'toast'; }, 3000);
+    }
+
+    document.querySelectorAll('.nav-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var page = item.dataset.page;
+        showPage(page);
+        document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
+        item.classList.add('active');
+      });
+    });
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.add('hidden'); });
+      var pageEl = document.getElementById('page-' + page);
+      if (pageEl) pageEl.classList.remove('hidden');
+      currentPage = page;
+      if (page === 'dashboard') loadDashboard();
+      if (page === 'approvals') loadApprovals();
+      if (page === 'soul') loadSoul();
+      if (page === 'health') loadHealth();
+    }
+
+    async function loadClientInfo() {
+      try {
+        var res = await fetch('/api/portal/me');
+        if (res.status === 401) {
+          window.location.href = '/portal-login';
+          return;
+        }
+        clientInfo = await res.json();
+        var initials = (clientInfo.clientName || 'CL').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+        document.getElementById('user-avatar').textContent = initials;
+        document.getElementById('user-name').textContent = clientInfo.clientName || 'Client';
+        document.getElementById('user-plan').textContent = (clientInfo.plan || 'trial').toUpperCase() + ' PLAN';
+        var hour = new Date().getHours();
+        var greeting = 'Good evening';
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 17) greeting = 'Good afternoon';
+        document.getElementById('dashboard-greeting').textContent = greeting + ', ' + (clientInfo.clientName || 'there') + ". Here's your business at a glance.";
+      } catch(err) {
+        console.error('Failed to load client info:', err);
+      }
+    }
+
+    async function loadDashboard() {
+      try {
+        var res = await fetch('/api/portal/dashboard');
+        var data = await res.json();
+        document.getElementById('stat-pending').textContent = data.pendingApprovals || 0;
+        document.getElementById('stat-messages').textContent = (data.stats && data.stats.messagesThisMonth) ? data.stats.messagesThisMonth.toLocaleString() : '0';
+        document.getElementById('stat-tasks').textContent = (data.stats && data.stats.tasksCompleted) ? data.stats.tasksCompleted.toLocaleString() : '0';
+        document.getElementById('stat-apicalls').textContent = (data.stats && data.stats.apiCallsThisMonth) ? data.stats.apiCallsThisMonth.toLocaleString() : '0';
+
+        var badge = document.getElementById('approvals-badge');
+        if (data.pendingApprovals > 0) {
+          badge.textContent = data.pendingApprovals;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+
+        if (data.billing) {
+          document.getElementById('billing-plan').textContent = data.billing.plan || 'Trial';
+          document.getElementById('billing-next').textContent = data.billing.nextDueAt || 'N/A';
+          document.getElementById('billing-status').textContent = data.billing.paymentStatus || 'Active';
+        }
+
+        if (data.businessInfo) {
+          document.getElementById('info-business').textContent = data.businessInfo.clientName || '-';
+          document.getElementById('info-type').textContent = data.businessInfo.businessType || '-';
+          document.getElementById('info-email').textContent = data.businessInfo.email || '-';
+          document.getElementById('info-phone').textContent = data.businessInfo.phone || '-';
+        }
+
+        renderRecentActivity(data.recentActivity || []);
+      } catch(err) {
+        console.error('Failed to load dashboard:', err);
+      }
+    }
+
+    function renderRecentActivity(activities) {
+      var container = document.getElementById('recent-activity');
+      if (!activities.length) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">&#9203;</div><p>No recent activity</p></div>';
+        return;
+      }
+      var html = activities.map(function(a) {
+        return '<div class="approval-item">' +
+          '<div class="approval-icon ' + (a.risk || 'low') + '">&#9776;</div>' +
+          '<div class="approval-content">' +
+            '<div class="approval-title">' + (a.action || 'Activity') + '</div>' +
+            '<div class="approval-meta">' + (a.details || '') + ' - ' + (a.timeAgo || 'Just now') + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      container.innerHTML = html;
+    }
+
+    async function loadApprovals() {
+      try {
+        var res = await fetch('/api/portal/approvals');
+        var data = await res.json();
+        approvals = data.approvals || [];
+        renderApprovals();
+      } catch(err) {
+        console.error('Failed to load approvals:', err);
+      }
+    }
+
+    function renderApprovals() {
+      var container = document.getElementById('approvals-list');
+      if (!approvals.length) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">&#10004;</div><p>No pending approvals</p></div>';
+        return;
+      }
+      var html = approvals.map(function(a) {
+        var riskLabel = a.risk ? a.risk.charAt(0).toUpperCase() + a.risk.slice(1) : 'Medium';
+        var dateStr = a.requestedAt ? new Date(a.requestedAt).toLocaleString() : '';
+        return '<div class="approval-item" data-id="' + a.id + '">' +
+          '<div class="approval-icon ' + (a.risk || 'medium') + '">' + (a.risk === 'high' ? '&#9888;' : '&#9776;') + '</div>' +
+          '<div class="approval-content">' +
+            '<div class="approval-title">' + (a.action || 'Action') + '</div>' +
+            '<div class="approval-meta">' + (a.details && (a.details.description || a.details.message) || 'Action requested') + '</div>' +
+            '<span class="approval-risk ' + (a.risk || 'medium') + '">' + riskLabel + ' risk</span> ' +
+            (dateStr ? '<span class="approval-meta">' + dateStr + '</span>' : '') +
+            '<div class="approval-actions">' +
+              '<button class="btn btn-approve" onclick="handleApprove(\'' + a.id + '\')">Approve</button>' +
+              '<button class="btn btn-deny" onclick="handleDeny(\'' + a.id + '\')">Deny</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      container.innerHTML = html;
+    }
+
+    async function handleApprove(id) {
+      try {
+        var res = await fetch('/api/approvals/' + id + '/approve', { method: 'POST' });
+        if (res.ok) {
+          showToast('Action approved successfully');
+          loadApprovals();
+          loadDashboard();
+        } else {
+          showToast('Failed to approve', 'error');
+        }
+      } catch(err) {
+        showToast('Failed to approve', 'error');
+      }
+    }
+
+    async function handleDeny(id) {
+      try {
+        var res = await fetch('/api/approvals/' + id + '/deny', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'Denied by client' })
+        });
+        if (res.ok) {
+          showToast('Action denied');
+          loadApprovals();
+          loadDashboard();
+        } else {
+          showToast('Failed to deny', 'error');
+        }
+      } catch(err) {
+        showToast('Failed to deny', 'error');
+      }
+    }
+
+    async function loadSoul() {
+      try {
+        var res = await fetch('/api/portal/soul');
+        var data = await res.json();
+        document.getElementById('soul-content').value = data.content || '# SOUL.md\n\nYour AI assistant personality...';
+      } catch(err) {
+        console.error('Failed to load SOUL:', err);
+      }
+    }
+
+    document.getElementById('soul-save').addEventListener('click', async function() {
+      var content = document.getElementById('soul-content').value;
+      try {
+        var res = await fetch('/api/portal/soul', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: content })
+        });
+        if (res.ok) {
+          showToast('SOUL saved successfully');
+        } else {
+          showToast('Failed to save SOUL', 'error');
+        }
+      } catch(err) {
+        showToast('Failed to save SOUL', 'error');
+      }
+    });
+
+    document.getElementById('soul-reset').addEventListener('click', async function() {
+      if (!confirm('Reset SOUL to default? This cannot be undone.')) return;
+      try {
+        var res = await fetch('/api/portal/soul', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: '# SOUL.md\n\nYour AI assistant personality...\n' })
+        });
+        if (res.ok) {
+          document.getElementById('soul-content').value = '# SOUL.md\n\nYour AI assistant personality...\n';
+          showToast('SOUL reset to default');
+        }
+      } catch(err) {
+        showToast('Failed to reset SOUL', 'error');
+      }
+    });
+
+    async function loadHealth() {
+      try {
+        var res = await fetch('/api/portal/dashboard');
+        var data = await res.json();
+
+        var gwDot = document.getElementById('health-gateway-dot');
+        var gwStatus = document.getElementById('health-gateway-status');
+        if (data.gatewayStatus === 'UP') {
+          gwDot.className = 'health-dot up';
+          gwStatus.textContent = 'Operational';
+        } else {
+          gwDot.className = 'health-dot down';
+          gwStatus.textContent = 'Unavailable';
+        }
+
+        var waDot = document.getElementById('health-whatsapp-dot');
+        var waStatus = document.getElementById('health-whatsapp-status');
+        if (data.whatsappLinked) {
+          waDot.className = 'health-dot up';
+          waStatus.textContent = 'Connected';
+        } else {
+          waDot.className = 'health-dot pending';
+          waStatus.textContent = 'Not linked';
+        }
+
+        document.getElementById('health-last-active').textContent = data.lastActive ? new Date(data.lastActive).toLocaleString() : 'No recent activity';
+      } catch(err) {
+        console.error('Failed to load health:', err);
+      }
+    }
+
+    document.querySelectorAll('.toggle').forEach(function(toggle) {
+      toggle.addEventListener('click', function() {
+        toggle.classList.toggle('active');
+      });
+    });
+
+    async function init() {
+      await loadClientInfo();
+      loadDashboard();
+    }
+
+    init();
+  </script>
+</body>
+</html>

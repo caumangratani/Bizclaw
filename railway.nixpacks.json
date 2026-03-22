@@ -1,0 +1,14 @@
+{
+  "name": "bizclaw",
+  "version": 1,
+  "build": {
+    "command": "cd admin && npm install && cd ../website && npm install"
+  },
+  "run": {
+    "command": "cd admin && npm start",
+    "ports": [18800],
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}
