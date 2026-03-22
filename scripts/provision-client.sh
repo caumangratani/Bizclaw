@@ -300,21 +300,21 @@ EOF
 
 # === Policy File Copy ===
 copy_policy() {
-    log_info "Applying policy: $PROFILE"
+    log_info "Applying policy: $POLICY"
 
     if [[ "$DRY_RUN" == "true" ]]; then
         echo "  Would copy policy file:"
-        echo "    $POLICIES_DIR/${PROFILE}.yaml -> $CLIENT_DIR/data/config/policy.yaml"
+        echo "    $POLICIES_DIR/${POLICY}.yaml -> $CLIENT_DIR/data/config/policy.yaml"
         return 0
     fi
 
     mkdir -p "$CLIENT_DIR/data/config"
 
-    if [[ -f "$POLICIES_DIR/${PROFILE}.yaml" ]]; then
-        cp "$POLICIES_DIR/${PROFILE}.yaml" "$CLIENT_DIR/data/config/policy.yaml"
+    if [[ -f "$POLICIES_DIR/${POLICY}.yaml" ]]; then
+        cp "$POLICIES_DIR/${POLICY}.yaml" "$CLIENT_DIR/data/config/policy.yaml"
     elif [[ -f "$POLICIES_DIR/default.yaml" ]]; then
         cp "$POLICIES_DIR/default.yaml" "$CLIENT_DIR/data/config/policy.yaml"
-        log_warning "Profile-specific policy not found, using default"
+        log_warning "Policy '$POLICY.yaml' not found, using default"
     else
         log_warning "No policy file found at $POLICIES_DIR"
         # Create a minimal default policy
