@@ -1,0 +1,83 @@
+# ============================================================
+# BizClaw Skill — GST Tracker
+# Tracks GST filing deadlines, verifies GSTIN, fetches return status
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+name: "gst-tracker"
+description: "Track GST filing deadlines, verify GSTIN numbers, fetch return filing status, and send reminders for upcoming due dates"
+
+capabilities:
+  - id: "verify_gstin"
+    description: "Validate a GSTIN (Goods and Services Tax Identification Number) and return business details"
+    examples:
+      - "verify GSTIN 27AABCU9603R1ZM"
+      - "is this GST number valid 29AAACH1234P1Z5"
+  - id: "check_filing_status"
+    description: "Check the current GST return filing status for a given period (GSTR-1, GSTR-3B)"
+    examples:
+      - "check my GSTR-1 status for February 2026"
+      - "has GSTR-3B been filed for January"
+  - id: "send_filing_reminder"
+    description: "Send a WhatsApp reminder to the business owner about upcoming GST filing deadlines"
+    examples:
+      - "remind me about GST filing due date"
+      - "send a reminder about GSTR-1 deadline"
+  - id: "fetch_gstr_summary"
+    description: "Fetch a summary of GSTR data — total tax liability, input tax credit, and net payable"
+    examples:
+      - "show GSTR summary for last month"
+      - "what is my total GST liability this month"
+
+triggers:
+  naturalLanguage:
+    - "GST filing due"
+    - "when is my GSTR-1 due"
+    - "check GST status"
+    - "verify GSTIN"
+    - "GST return"
+    - "GSTR-3B"
+    - "GSTR-1 filing"
+    - "GSTIN validation"
+    - "GST reminder"
+    - "gst.gov.in"
+    - "ewaybill"
+  scheduled:
+    - cron: "0 10 10,20 * * *"   # 10 AM on 10th and 20th of every month
+      action: "send_filing_reminder"
+      reason: "Remind about GSTR-3B (20th) and GSTR-1 (10th/11th) deadlines"
+
+tools:
+  - name: "gst-lookup"
+    source: "bizclaw"
+    args:
+      gstin: "{{ gstin }}"
+  - name: "business-calendar"
+    source: "bizclaw"
+    args:
+      type: "gst_deadlines"
+      year: "{{ year | default('current') }}"
+  - name: "whatsapp-templates"
+    source: "bizclaw"
+    args:
+      template: "gst_reminder"
+      language: "{{ language | default('en') }}"
+
+permissions:
+  network:
+    - host: "gst.gov.in"
+      ports: [443]
+    - host: "ewaybillgst.gov.in"
+      ports: [443]
+    - host: "api.anthropic.com"
+      ports: [443]
+    - host: "graph.facebook.com"
+      ports: [443]
+  filesystem:
+    - "/data/workspace"
+  inference:
+    providers: ["anthropic"]
+
+config:
+  reminderDaysBefore: [7, 3, 1]   # Send reminders 7, 3, and 1 day before
+  defaultClientId: null           # Set per-client in client config
+  autofileEnabled: false          # Require explicit client approval to auto-file

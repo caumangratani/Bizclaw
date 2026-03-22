@@ -1,10 +1,11 @@
 {
   "id": "bizclaw",
   "name": "BizClaw Plugin",
-  "description": "Indian MSME business tools — GST lookup, Indian calendar, WhatsApp templates, and Bizgenix soul injection",
-  "version": "0.1.0",
+  "description": "Indian MSME business tools — GST lookup, Indian calendar, WhatsApp templates, policy enforcement, and Bizgenix soul injection",
+  "version": "0.2.0",
   "author": "Bizgenix AI Solutions Pvt. Ltd.",
-  "skills": ["../skills"],
+  "skills": ["../skills", "./skills"],
+  "policies": ["./config/policies"],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -16,6 +17,11 @@
       "gstApiEnabled": {
         "type": "boolean",
         "description": "Enable GST number validation API"
+      },
+      "policyTier": {
+        "type": "string",
+        "enum": ["default", "enterprise", "restricted"],
+        "description": "Policy tier to enforce for this client (default, enterprise, restricted)"
       }
     }
   },
@@ -27,6 +33,10 @@
     "gstApiEnabled": {
       "label": "Enable GST Lookup",
       "description": "Uses public API to validate GSTIN numbers"
+    },
+    "policyTier": {
+      "label": "Policy Tier",
+      "description": "Security policy tier for this client. Default is recommended for new clients."
     }
   }
 }

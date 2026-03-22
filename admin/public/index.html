@@ -219,7 +219,10 @@
         <h1>Operator Dashboard</h1>
         <div class="muted">Track installs, health, notes, and billing for every Bizgenix client.</div>
       </div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <a class="button" href="/approvals" id="approvals-link">
+          Approvals <span id="approvals-badge" style="display:none; margin-left:6px; background:#E94560; color:#fff; font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px;" hidden></span>
+        </a>
         <a class="button button-primary" href="#" id="refresh-button">Refresh</a>
         <button id="logout-button">Log Out</button>
       </div>
@@ -333,6 +336,24 @@
 
     load();
     setInterval(load, 30000);
+
+    // Poll approval unread count
+    async function pollApprovals() {
+      try {
+        const res = await fetch("/api/approvals/unread-count");
+        if (!res.ok) return;
+        const data = await res.json();
+        const badge = document.getElementById("approvals-badge");
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.hidden = false;
+        } else {
+          badge.hidden = true;
+        }
+      } catch { /* silent */ }
+    }
+    pollApprovals();
+    setInterval(pollApprovals, 10000);
   </script>
 </body>
 </html>

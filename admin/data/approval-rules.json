@@ -1,0 +1,24 @@
+{
+  "autoApprove": {
+    "description": "Actions approved automatically without human review",
+    "rules": [
+      { "action": "gst_lookup", "risk": "low" },
+      { "action": "send_whatsapp_to_registered", "risk": "low" },
+      { "action": "read_tally_vouchers", "risk": "low" },
+      { "action": "business_calendar_check", "risk": "low" },
+      { "action": "send_whatsapp_template", "risk": "low" }
+    ]
+  },
+  "requireApproval": {
+    "description": "Actions that require explicit human approval",
+    "rules": [
+      { "action": "send_external_email", "risk": "high", "expireMinutes": 5 },
+      { "action": "initiate_payment", "risk": "high", "expireMinutes": 5 },
+      { "action": "send_whatsapp_to_unregistered", "risk": "medium", "expireMinutes": 10 },
+      { "action": "modify_tally_voucher", "risk": "medium", "expireMinutes": 10 },
+      { "action": "access_gst_with_credentials", "risk": "high", "expireMinutes": 5 },
+      { "action": "create_google_calendar_event", "risk": "low", "expireMinutes": 15 },
+      { "action": "send_email_to_new_recipient", "risk": "medium", "expireMinutes": 10 }
+    ]
+  }
+}

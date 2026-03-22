@@ -1,0 +1,59 @@
+# ============================================================
+# BizClaw Default Policy
+# Profile: standard
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+
+version: "1.0"
+name: "default"
+description: "Default security policy for standard MSME clients"
+
+tools:
+  gst-lookup:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 30
+      burst: 10
+    cache:
+      enabled: true
+      ttlSeconds: 3600
+
+  business-calendar:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 60
+      burst: 20
+    cache:
+      enabled: true
+      ttlSeconds: 86400
+
+  whatsapp-templates:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 100
+      burst: 50
+    maxMessageLength: 4096
+    allowedLanguages:
+      - en
+      - hi
+      - gu
+
+security:
+  maxConcurrentClients: 50
+  rateLimit:
+    global:
+      requestsPerMinute: 500
+      burst: 100
+  dataRetention:
+    logsDays: 30
+    backupsDays: 90
+  allowedOrigins:
+    - "*"
+  maxFileSize: 10485760  # 10MB
+
+features:
+  multiChannel: true
+  analytics: true
+  customBranding: true
+  advancedReporting: false
+  apiAccess: false

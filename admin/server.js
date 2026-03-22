@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const fs = require("fs/promises");
 const path = require("path");
+const approvalQueue = require("./approval-queue");
 
 const app = express();
 const rootDir = __dirname;
@@ -438,6 +439,10 @@ app.get("/client/:id", authRequired(false), async (_req, res) => {
   res.sendFile(path.join(publicDir, "client.html"));
 });
 
+app.get("/approvals", authRequired(false), async (_req, res) => {
+  res.sendFile(path.join(publicDir, "approvals.html"));
+});
+
 app.get("/api/me", authRequired(true), async (_req, res) => {
   res.json({ ok: true, name: "Bizgenix Admin" });
 });
@@ -510,6 +515,54 @@ app.get("/api/security", authRequired(true), async (req, res) => {
   };
 
   res.json({ summary, clients });
+});
+
+// Approval Queue API
+app.get("/api/approvals", authRequired(true), async (req, res) => {
+  const clientId = req.query.clientId || null;
+  res.json({ pending: approvalQueue.getPending(clientId) });
+});
+
+app.get("/api/approvals/history", authRequired(true), async (req, res) => {
+  const clientId = req.query.clientId || null;
+  const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+  res.json({ history: approvalQueue.getHistory(clientId, limit) });
+});
+
+app.get("/api/approvals/unread-count", authRequired(true), async (_req, res) => {
+  res.json({ count: approvalQueue.getUnreadCount() });
+});
+
+app.post("/api/approvals/enqueue", async (req, res) => {
+  // Internal endpoint for agents - no auth required from localhost
+  const { clientId, action, details, requestedBy, risk, policyRule } = req.body || {};
+  if (!action) {
+    res.status(400).json({ error: "action is required" });
+    return;
+  }
+  const item = approvalQueue.enqueue({ clientId, action, details, requestedBy, risk, policyRule });
+  res.json({ ok: true, approval: item });
+});
+
+app.post("/api/approvals/:id/approve", authRequired(true), async (req, res) => {
+  const approver = req.adminSession?.name || "operator";
+  const item = approvalQueue.approve(req.params.id, approver);
+  if (!item) {
+    res.status(404).json({ error: "Approval not found or already resolved." });
+    return;
+  }
+  res.json({ ok: true, approval: item });
+});
+
+app.post("/api/approvals/:id/deny", authRequired(true), async (req, res) => {
+  const approver = req.adminSession?.name || "operator";
+  const reason = String(req.body?.reason || "").trim() || null;
+  const item = approvalQueue.deny(req.params.id, approver, reason);
+  if (!item) {
+    res.status(404).json({ error: "Approval not found or already resolved." });
+    return;
+  }
+  res.json({ ok: true, approval: item });
 });
 
 app.use(authRequired(false), express.static(publicDir));

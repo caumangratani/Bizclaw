@@ -1,0 +1,67 @@
+# ============================================================
+# BizClaw Restricted Policy
+# Profile: restricted / trial
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+
+version: "1.0"
+name: "restricted"
+description: "Limited security policy for trials and testing"
+
+tools:
+  whatsapp-templates:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 20
+      burst: 5
+    maxMessageLength: 2048
+    allowedLanguages:
+      - en
+    trialMode: true
+
+  gst-lookup:
+    enabled: false
+    reason: "Requires paid subscription"
+
+  business-calendar:
+    enabled: false
+    reason: "Requires paid subscription"
+
+  tally-bridge:
+    enabled: false
+    reason: "Enterprise feature only"
+
+  followup-manager:
+    enabled: false
+    reason: "Enterprise feature only"
+
+security:
+  maxConcurrentClients: 100
+  rateLimit:
+    global:
+      requestsPerMinute: 100
+      burst: 20
+  dataRetention:
+    logsDays: 7
+    backupsDays: 7
+    trialAutoDelete: true
+  allowedOrigins:
+    - "*"
+  maxFileSize: 1048576
+  trial:
+    enabled: true
+    expiresAfterDays: 14
+    maxMessages: 500
+
+features:
+  multiChannel: false
+  analytics: false
+  customBranding: false
+  advancedReporting: false
+  apiAccess: false
+  watermark: true
+  trialBadge: true
+
+notifications:
+  trialExpiryReminder: true
+  trialUpgradePrompt: true

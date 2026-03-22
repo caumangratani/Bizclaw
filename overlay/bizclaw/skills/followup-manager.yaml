@@ -1,0 +1,103 @@
+# ============================================================
+# BizClaw Skill — Follow-up Manager
+# Manage pending follow-ups: collections, vendor payments, client responses
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+name: "followup-manager"
+description: "Manage and automate follow-up sequences — pending collections, overdue vendor payments, and unresponded client messages"
+
+capabilities:
+  - id: "send_followup_message"
+    description: "Send a personalized follow-up WhatsApp message using approved templates, with optional escalation"
+    examples:
+      - "follow up with Ramesh about invoice"
+      - "send reminder to Blue Textiles"
+      - "remind ABC company about payment"
+  - id: "log_followup_response"
+    description: "Log any response received from a follow-up — payment confirmation, dispute filed, or promise to pay"
+    examples:
+      - "log that Ramesh promised to pay next week"
+      - "record Blue Textiles response"
+      - "mark payment received from client"
+  - id: "escalate_overdue"
+    description: "Escalate an overdue account — escalate from polite reminder to direct call request to Bizgenix intervention"
+    examples:
+      - "escalate this overdue account"
+      - "this payment is too late, escalate it"
+      - "mark this as requiring Bizgenix intervention"
+  - id: "whatsapp_followup_sequence"
+    description: "Set up an automated multi-step follow-up sequence for a specific debtor or client"
+    examples:
+      - "set up follow-up sequence for this client"
+      - "automate reminders for Blue Textiles"
+      - "start the 3-step follow-up process"
+
+triggers:
+  naturalLanguage:
+    - "follow up with"
+    - "pending collections"
+    - "remind about payment"
+    - "overdue payment"
+    - "collection reminder"
+    - "send reminder"
+    - "who owes me money"
+    - "pending payments"
+    - "send follow-up"
+    - "payment follow-up"
+    - "collection sequence"
+  scheduled:
+    - cron: "0 0 10 * * 1-5"     # 10 AM IST, weekdays
+      action: "send_followup_message"
+      reason: "Morning follow-up batch for all overdue accounts"
+    - cron: "0 0 14 * * 1-5"     # 2 PM IST, weekdays
+      action: "send_followup_message"
+      reason: "Afternoon follow-up batch"
+    - cron: "0 0 11 * * 6"      # 11 AM IST, Saturday
+      action: "send_followup_message"
+      reason: "Saturday morning follow-up"
+
+tools:
+  - name: "whatsapp-templates"
+    source: "bizclaw"
+    args:
+      template: "followup"
+      tone: "{{ tone | default('polite') }}"
+      language: "{{ language | default('en') }}"
+  - name: "business-calendar"
+    source: "bizclaw"
+    args:
+      type: "reminders"
+  - name: "notion-sync"
+    source: "external"
+    args:
+      database: "collections"
+      action: "update"
+      filter: "client = {{ client_name }}"
+
+permissions:
+  network:
+    - host: "graph.facebook.com"
+      ports: [443]
+    - host: "wa.me"
+      ports: [443]
+    - host: "api.anthropic.com"
+      ports: [443]
+    - host: "api.notion.com"
+      ports: [443]
+  filesystem:
+    - "/data/workspace"
+  inference:
+    providers: ["anthropic"]
+
+config:
+  sequenceSteps: 3               # Default 3-step sequence
+  stepDelays:
+    - 1                         # Step 1: Day 1 — polite reminder
+    - 3                         # Step 2: Day 3 — firm reminder
+    - 7                         # Step 3: Day 7 — escalate to Bizgenix team
+  escalationThresholdDays: 14    # After 14 days overdue, auto-escalate
+  toneOptions:
+    - "polite"                  # Friendly, light nudge
+    - "firm"                     # Direct, clear expectation
+    - "urgent"                   # Last reminder before escalation
+  maxFollowupsPerDay: 50         # Rate limit to avoid WhatsApp spam flags

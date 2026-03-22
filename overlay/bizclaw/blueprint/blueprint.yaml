@@ -1,0 +1,153 @@
+# ============================================================
+# BizClaw Blueprint Manifest
+# Inspired by NVIDIA NeMoClaw deployment architecture
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+
+version: "1.0"
+name: "bizclaw-blueprint"
+description: "BizClaw deployment blueprint — reproducible client environments"
+schemaVersion: "1.0"
+
+requires:
+  openclaw: "2026.3.0+"
+  bizclaw: "1.0.0+"
+
+profiles:
+  standard:
+    label: "Standard MSME"
+    description: "Ideal for growing businesses with standard automation needs"
+    policy: "default"
+    tools:
+      - gst-lookup
+      - business-calendar
+      - whatsapp-templates
+    maxConcurrentClients: 50
+    inference: "claude-sonnet-4-6"
+    features:
+      multiChannel: true
+      analytics: true
+      customBranding: true
+
+  enterprise:
+    label: "Enterprise MSME"
+    description: "Full-featured for established businesses requiring advanced integrations"
+    policy: "enterprise"
+    tools:
+      - gst-lookup
+      - business-calendar
+      - whatsapp-templates
+      - tally-bridge
+      - followup-manager
+    maxConcurrentClients: 20
+    inference: "claude-opus-4-6"
+    features:
+      multiChannel: true
+      analytics: true
+      customBranding: true
+      advancedReporting: true
+      apiAccess: true
+
+  restricted:
+    label: "Restricted / Trial"
+    description: "Limited access for trials and testing environments"
+    policy: "restricted"
+    tools:
+      - whatsapp-templates
+    maxConcurrentClients: 100
+    inference: "claude-haiku-4-5"
+    features:
+      multiChannel: false
+      analytics: false
+      customBranding: false
+
+sandbox:
+  image: "bizgenix/bizclaw-sandbox:latest"
+  port: 18789
+  volumes:
+    workspace: "/data/workspace"
+    credentials: "/data/credentials"
+    backups: "/data/backups"
+    logs: "/data/logs"
+  healthCheck:
+    path: "/"
+    interval: "30s"
+    timeout: "5s"
+    retries: 3
+  security:
+    landlockEnabled: true
+    seccompProfile: "default"
+    readOnlyRootfs: false
+    noNewPrivileges: true
+
+inference:
+  defaultProvider: "anthropic"
+  profiles:
+    claude-sonnet-4-6:
+      provider: "anthropic"
+      model: "claude-sonnet-4-6"
+      maxTokens: 8192
+      temperature: 0.7
+      systemPromptPrefix: "You are a helpful business assistant for an Indian MSME."
+    claude-opus-4-6:
+      provider: "anthropic"
+      model: "claude-opus-4-6"
+      maxTokens: 32768
+      temperature: 0.5
+      systemPromptPrefix: "You are a senior business advisor for an established Indian enterprise."
+    claude-haiku-4-5:
+      provider: "anthropic"
+      model: "claude-haiku-4-5"
+      maxTokens: 4096
+      temperature: 0.8
+      systemPromptPrefix: "You are a friendly assistant helping with basic business tasks."
+
+onboarding:
+  enabled: true
+  steps:
+    - id: "brand"
+      title: "Configure Branding"
+      description: "Set up your business name, logo, and visual identity"
+      fields:
+        - businessName
+        - logoUrl
+        - primaryColor
+        - tagline
+      required:
+        - businessName
+
+    - id: "contacts"
+      title: "Business Contacts"
+      description: "Configure admin contact information for alerts and emergencies"
+      fields:
+        - adminPhone
+        - adminEmail
+        - emergencyContact
+      required:
+        - adminPhone
+
+    - id: "integrations"
+      title: "Connect Integrations"
+      description: "Enable GST validation, Tally, and other business tools"
+      fields:
+        - tallyEnabled
+        - notionEnabled
+        - gstin
+        - gstCredentials
+      required: []
+
+    - id: "policy"
+      title: "Choose Security Policy"
+      description: "Select access controls and data handling preferences"
+      fields:
+        - policyTier
+      required:
+        - policyTier
+
+    - id: "launch"
+      title: "Launch & Test"
+      description: "Test your setup and go live"
+      fields:
+        - testWhatsapp
+        - sendFirstMessage
+      required: []
