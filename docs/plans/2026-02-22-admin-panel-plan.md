@@ -300,7 +300,7 @@ BizClaw admin theme:
 **Step 1: Deploy self as Client #1**
 
 ```bash
-cd /Users/fs/Desktop/BizClaw
+cd <path-to-bizclaw-repo>
 ./scripts/new-client.sh bizgenix "Bizgenix Internal" "AI Consulting" "+918200858674"
 # Copy API keys from master .env to clients/bizgenix/.env
 ./docker/deploy-client.sh bizgenix

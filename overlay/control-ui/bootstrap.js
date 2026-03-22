@@ -101,8 +101,8 @@
     });
 
     root.querySelectorAll('a[href^="https://docs.openclaw.ai"]').forEach(function (el) {
-      if (el.getAttribute("href") !== "https://website-azure-one-68.vercel.app") {
-        el.setAttribute("href", "https://website-azure-one-68.vercel.app");
+      if (el.getAttribute("href") !== "https://bizclaw.in") {
+        el.setAttribute("href", "https://bizclaw.in");
       }
       if (el.getAttribute("target") !== "_blank") {
         el.setAttribute("target", "_blank");

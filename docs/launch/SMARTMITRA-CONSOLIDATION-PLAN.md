@@ -31,9 +31,9 @@ SmartMitra has useful SaaS features that BizClaw AI does not yet expose cleanly:
 
 Lift into BizClaw AI first:
 
-- Razorpay subscription flow from [payment.py](/Users/fs/Desktop/Bizgenix-Projects/SmartMitra/app/api/payment.py)
+- Razorpay subscription flow from the SmartMitra FastAPI app (`app/api/payment.py`)
 - login / auth flow from the SmartMitra FastAPI app
-- simple customer account page based on [customer_dashboard.html](/Users/fs/Desktop/Bizgenix-Projects/SmartMitra/app/templates/customer_dashboard.html)
+- simple customer account page based on SmartMitra templates (`app/templates/customer_dashboard.html`)
 
 Reason:
 
