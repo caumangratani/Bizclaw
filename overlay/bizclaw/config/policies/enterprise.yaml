@@ -1,0 +1,91 @@
+# ============================================================
+# BizClaw Enterprise Policy
+# Profile: enterprise
+# Bizgenix AI Solutions Pvt. Ltd.
+# ============================================================
+
+version: "1.0"
+name: "enterprise"
+description: "Enhanced security policy for enterprise MSME clients"
+
+tools:
+  gst-lookup:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 100
+      burst: 30
+    cache:
+      enabled: true
+      ttlSeconds: 1800
+    auditLogging: true
+
+  business-calendar:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 200
+      burst: 50
+    cache:
+      enabled: true
+      ttlSeconds: 43200
+    auditLogging: true
+
+  whatsapp-templates:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 300
+      burst: 100
+    maxMessageLength: 65536
+    allowedLanguages:
+      - en
+      - hi
+      - gu
+    auditLogging: true
+
+  tally-bridge:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 50
+      burst: 10
+    auditLogging: true
+    dataExport: true
+
+  followup-manager:
+    enabled: true
+    rateLimit:
+      requestsPerMinute: 100
+      burst: 20
+    auditLogging: true
+    escalationEnabled: true
+
+security:
+  maxConcurrentClients: 20
+  rateLimit:
+    global:
+      requestsPerMinute: 1000
+      burst: 200
+  dataRetention:
+    logsDays: 60
+    backupsDays: 180
+    auditDays: 365
+  allowedOrigins:
+    - "*"
+  maxFileSize: 52428800  # 50MB
+  encryption:
+    atRest: true
+    inTransit: true
+  ipWhitelist: []
+
+features:
+  multiChannel: true
+  analytics: true
+  customBranding: true
+  advancedReporting: true
+  apiAccess: true
+  webhookSupport: true
+  ssoEnabled: false
+
+audit:
+  enabled: true
+  logAllToolCalls: true
+  logAllMessages: true
+  exportFormat: "json"

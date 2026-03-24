@@ -7,7 +7,7 @@
   "homepage": "https://bizgenix.in",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bizgenix/bizclaw.git"
+    "url": "https://github.com/caumangratani/Bizclaw.git"
   },
   "scripts": {
     "build": "./scripts/build.sh",

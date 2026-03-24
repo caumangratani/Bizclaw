@@ -42,7 +42,7 @@ Hostinger VPS is good enough for a first pilot if those are available.
 Create the customer:
 
 ```bash
-cd /Users/fs/Desktop/Bizgenix-Projects/BizClaw
+cd <path-to-bizclaw-repo>
 ./scripts/provision-managed-client.sh pilot-client "Pilot Client" "Trading & Distribution" "+919876543210"
 ```
 

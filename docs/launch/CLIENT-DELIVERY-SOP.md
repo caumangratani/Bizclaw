@@ -5,7 +5,7 @@ This is the repeatable install flow for a sold BizClaw client.
 ## 1. Create the client
 
 ```bash
-cd /Users/fs/Desktop/Bizgenix-Projects/BizClaw
+cd <path-to-bizclaw-repo>
 ./scripts/new-client.sh sharma-traders "Sharma Traders" "Trading & Distribution" "+919876543210"
 ```
 

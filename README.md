@@ -32,7 +32,7 @@ BizClaw is an autonomous AI business agent that helps Indian MSMEs automate oper
 
 1. Clone with submodules:
    ```bash
-   git clone --recurse-submodules https://github.com/bizgenix/bizclaw.git
+   git clone --recurse-submodules https://github.com/caumangratani/Bizclaw.git
    cd bizclaw
    ```
 
@@ -47,12 +47,7 @@ BizClaw is an autonomous AI business agent that helps Indian MSMEs automate oper
    ./scripts/build.sh
    ```
 
-4. Build BizClaw:
-   ```bash
-   ./scripts/build.sh
-   ```
-
-5. Create a client:
+4. Create a client:
    ```bash
    ./scripts/new-client.sh demo-local "BizClaw Demo Local" "Trading & Distribution" "+919876543210"
    ```

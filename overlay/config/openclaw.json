@@ -4,14 +4,14 @@
   // Bizgenix AI Solutions Pvt. Ltd.
   // ============================================================
 
-  "$schema": "https://openclaw.sh/schema/openclaw.json",
+  "$schema": "https://openclaw.ai/schema/openclaw.json",
 
   // -- UI Branding --
   "ui": {
     "seamColor": "#16A34A",
     "assistant": {
       "name": "BizClaw",
-      "avatar": "https://bizclaw.in/logo.png"
+      "avatar": ""
     }
   },
 
@@ -19,8 +19,8 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "anthropic/claude-sonnet-4-6",
-        "fallbacks": ["openai/gpt-4o"]
+        "primary": "anthropic/claude-sonnet-4.6",
+        "fallbacks": ["openai/gpt-5.4"]
       },
       "heartbeat": {
         "every": "4h",
@@ -39,7 +39,7 @@
         "name": "BizClaw Assistant",
         "identity": {
           "name": "BizClaw",
-          "avatar": "https://bizclaw.in/logo.png"
+          "avatar": ""
         },
         "tools": {
           "profile": "messaging",

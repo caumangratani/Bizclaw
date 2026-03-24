@@ -19,7 +19,7 @@
 **Step 1: Add OpenClaw as submodule**
 
 ```bash
-cd /Users/fs/Desktop/BizClaw
+cd <path-to-bizclaw-repo>
 git submodule add https://github.com/openclaw/openclaw.git openclaw
 ```
 
@@ -58,7 +58,7 @@ git commit -m "feat: add OpenClaw as git submodule"
 **Step 1: Create all directories**
 
 ```bash
-cd /Users/fs/Desktop/BizClaw
+cd <path-to-bizclaw-repo>
 mkdir -p overlay/branding overlay/config overlay/skills/{gst-tracker,tally-bridge,heartbeat,daily-summary,follow-up-manager} overlay/i18n overlay/onboarding
 mkdir -p clients dashboard docker patches scripts extension
 touch clients/.gitkeep dashboard/.gitkeep docker/.gitkeep patches/.gitkeep
@@ -1076,7 +1076,7 @@ git commit -m "feat: add Docker deployment template for client instances"
 **Step 1: Verify entire project structure**
 
 ```bash
-cd /Users/fs/Desktop/BizClaw
+cd <path-to-bizclaw-repo>
 echo "=== BizClaw Project Structure ==="
 find . -maxdepth 4 -not -path './openclaw/*' -not -path './.git/*' -not -path './node_modules/*' | sort
 ```
